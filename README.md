@@ -1,4 +1,7 @@
-# mr-fat-controller
+# Model Railway Fat Controller
+
+The Model Railway Fat Controller provides a web-based controller interface and API for controlling a model
+railway, including signals, turnouts, and locomotives.
 
 ## License
 
