@@ -45,6 +45,7 @@ dependencies = [
 dependencies = [
   "pytest",
   "pytest-cov",
+  "httpx",
 ]
 [tool.hatch.envs.test.scripts]
 cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=mr_fat_controller --cov=tests {args}"
