@@ -42,7 +42,7 @@ dependencies = [
 ]
 
 [tool.hatch.envs.test]
-dependencies = [
+extra-dependencies = [
   "pytest",
   "pytest-cov",
   "httpx",
@@ -59,6 +59,7 @@ branch = true
 parallel = true
 omit = [
   "mr_fat_controller/__about__.py",
+  "mr_fat_controller/__main__.py",
 ]
 
 [tool.coverage.report]
