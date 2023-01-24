@@ -38,6 +38,7 @@ path = "mr_fat_controller/__about__.py"
 dependencies = [
   "fastapi==0.*",
   "typer[all]==0.*",
+  "uvicorn[standards]==0.*",
 ]
 
 [tool.hatch.envs.test]
