@@ -36,7 +36,10 @@ path = "mr_fat_controller/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
+  "alembic==1.*",
+  "asyncpg==0.*",
   "fastapi==0.*",
+  "sqlalchemy==2.*",
   "typer[all]==0.*",
   "uvicorn[standard]==0.*",
 ]

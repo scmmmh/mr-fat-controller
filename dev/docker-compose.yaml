@@ -1,0 +1,13 @@
+version: '2'
+services:
+  postgresql:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=devPWD
+      - POSTGRES_USER=mr_fat_controller
+      - POSTGRES_DB=mr_fat_controller
+volumes:
+  postgresql:
+    driver: local

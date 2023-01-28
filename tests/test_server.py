@@ -6,6 +6,6 @@ from fastapi.testclient import TestClient
 def test_status() -> None:
     """Test the status request."""
     client = TestClient(app)
-    response = client.get('/status')
+    response = client.get('/api/status')
     assert response.status_code == 200
     assert response.json() == {'ready': True}
