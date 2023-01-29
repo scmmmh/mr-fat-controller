@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+from uuid import uuid4
 
 from ..models import db_session, Controller, ControllerModel
 
@@ -26,14 +27,13 @@ async def get_controllers(dbsession: AsyncSession = Depends(db_session)) -> list
 class CreateControllerModel(BaseModel):
     """The validation model for creating controllers."""
 
-    id: str = Field(min_length=1)
     baseurl: AnyHttpUrl
 
 
 @router.post('/', response_model=ControllerModel)
 async def post_controllers(params: CreateControllerModel, dbsession: AsyncSession = Depends(db_session)) -> Controller:
     """Create a new controller."""
-    controller = Controller(id=params.id,
+    controller = Controller(id=str(uuid4()),
                             baseurl=params.baseurl,
                             name='New controller',
                             status='unknown')
