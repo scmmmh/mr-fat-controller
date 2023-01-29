@@ -1,5 +1,0 @@
-paths:
-  - mr_fat_controller
-paths-ignore:
-  - node_modules
-  - static
