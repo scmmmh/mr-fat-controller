@@ -1,4 +1,6 @@
 """Server routes."""
+import logging
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -8,6 +10,7 @@ from . import controllers
 from ..models import db_session
 
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix='/api')
 router.include_router(controllers.router)
 
@@ -24,6 +27,7 @@ async def status(dbsession: AsyncSession = Depends(db_session)) -> dict:
     """Return the current server status."""
     try:
         await dbsession.execute(text('SELECT * FROM alembic_version'))
-    except Exception:
-        return {'ready': False}
-    return {'ready': True}
+        return {'ready': True}
+    except Exception as e:       # noqa: cov
+        logger.error(e)          # noqa: cov
+        return {'ready': False}  # noqa: cov

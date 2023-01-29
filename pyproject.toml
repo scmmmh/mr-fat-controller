@@ -53,7 +53,8 @@ extra-dependencies = [
 [tool.hatch.envs.test.scripts]
 cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=mr_fat_controller --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
-
+[tool.hatch.envs.test.env-vars]
+DSN = "postgresql+asyncpg://mr_fat_controller:testPWD@localhost:5432/mr_fat_controller"
 [[tool.hatch.envs.test.matrix]]
 python = ["310", "311"]
 
@@ -63,11 +64,13 @@ parallel = true
 omit = [
   "mr_fat_controller/__about__.py",
   "mr_fat_controller/__main__.py",
+  "mr_fat_controller/alembic/*",
+  "mr_fat_controller/cli.py",
 ]
 
 [tool.coverage.report]
 exclude_lines = [
-  "no cov",
+  "noqa: cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
 ]

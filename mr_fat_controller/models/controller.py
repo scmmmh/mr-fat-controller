@@ -1,5 +1,5 @@
 """The Controller database model."""
-from pydantic import BaseModel
+from pydantic import BaseModel, AnyHttpUrl
 from sqlalchemy import Column, Unicode
 
 from .meta import Base
@@ -24,7 +24,7 @@ class ControllerModel(BaseModel):
     """The Pydantic Controller Model for validating responses."""
 
     id: str
-    baseurl: str
+    baseurl: AnyHttpUrl
     name: str
     status: str
 
