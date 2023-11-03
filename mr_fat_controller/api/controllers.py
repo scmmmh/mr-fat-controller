@@ -32,7 +32,7 @@ class CreateControllerModel(BaseModel):
 @router.post("/", response_model=ControllerModel)
 async def post_controllers(params: CreateControllerModel, dbsession: AsyncSession = Depends(db_session)) -> Controller:
     """Create a new controller."""
-    controller = Controller(id=params.id, baseurl=params.baseurl, name="New controller", status="unknown")
+    controller = Controller(id=params.id, baseurl=str(params.baseurl), name="New controller", status="unknown")
     dbsession.add(controller)
     try:
         await dbsession.commit()
@@ -57,12 +57,12 @@ async def get_controller(cid: str, dbsession: AsyncSession = Depends(db_session)
 class PutControllerModel(BaseModel):
     """Model for validating controller updates."""
 
-    baseurl: Optional[AnyHttpUrl]
-    name: Optional[str] = Field(min_length=1)
+    baseurl: Optional[AnyHttpUrl] = None
+    name: Optional[str] = Field(min_length=1, default=None)
 
 
-@router.put("/{cid}", response_model=ControllerModel)
-async def put_controller(
+@router.patch("/{cid}", response_model=ControllerModel)
+async def patch_controller(
     cid: str, params: PutControllerModel, dbsession: AsyncSession = Depends(db_session)
 ) -> Controller:
     """Fetch a specific controller."""
@@ -73,7 +73,7 @@ async def put_controller(
         raise HTTPException(404, "No controller exists with this id.")
     else:
         if params.baseurl is not None:
-            controller.baseurl = params.baseurl
+            controller.baseurl = str(params.baseurl)
         if params.name is not None:
             controller.name = params.name
         await dbsession.commit()

@@ -19,7 +19,7 @@ def get_engine() -> AsyncEngine:
     try:
         return local_cache.engine
     except Exception:
-        local_cache.engine = create_async_engine(settings["dsn"])
+        local_cache.engine = create_async_engine(settings.dsn)
         return local_cache.engine
 
 

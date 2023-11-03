@@ -1,5 +1,5 @@
 """The Controller database model."""
-from pydantic import AnyHttpUrl, BaseModel
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict
 from sqlalchemy import Column, Unicode
 
 from mr_fat_controller.models.meta import Base
@@ -28,7 +28,4 @@ class ControllerModel(BaseModel):
     name: str
     status: str
 
-    class Config:
-        """Configuration to enable orm_mode."""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

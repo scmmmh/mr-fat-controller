@@ -38,13 +38,13 @@ Source = "https://github.com/unknown/mr-fat-controller"
 path = "mr_fat_controller/__about__.py"
 
 [tool.hatch.envs.default]
-dependencies = ["coverage[toml]>=6.5", "pytest"]
+dependencies = ["coverage[toml]>=6.5", "pytest", "httpx"]
 
 [tool.hatch.envs.default.scripts]
 server = "cd dev && uvicorn --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app"
 mr_fat_controller = "cd dev && python -m mr_fat_controller {args}"
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
+test = "cd tests && pytest {args:.}"
+test-cov = "cd tests && coverage run -m pytest {args:.}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
 

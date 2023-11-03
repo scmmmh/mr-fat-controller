@@ -19,7 +19,7 @@ async def execute_setup(*, drop_existing: bool = False) -> None:
     with resources.as_file(alembic_base) as script_location:
         alembic_config = Config()
         alembic_config.set_main_option("script_location", str(script_location))
-        alembic_config.set_main_option("sqlalchemy.url", settings["dsn"])
+        alembic_config.set_main_option("sqlalchemy.url", settings.dsn)
 
         def sync_db_ops(conn: AsyncEngine) -> None:
             """Run the commands synchronously."""

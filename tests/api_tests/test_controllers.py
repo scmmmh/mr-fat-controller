@@ -17,29 +17,29 @@ def test_empty_controllers(empty_database: None) -> None:  # noqa: ARG001
 def test_create_controller(empty_database: None) -> None:  # noqa: ARG001
     """Test that creating a controller persists to the database."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller.example.com",
+        "baseurl": "http://controller.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
     response = client.get("/api/controllers")
     assert response.status_code == 200
     assert response.json() == [
-        {"id": "1", "baseurl": "http://controller.example.com", "name": "New controller", "status": "unknown"}
+        {"id": "1", "baseurl": "http://controller.example.com/", "name": "New controller", "status": "unknown"}
     ]
 
 
 def test_fail_create_duplicate_controller(empty_database: None) -> None:  # noqa: ARG001
     """Test that creating a duplicate controller fails."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller1.example.com",
+        "baseurl": "http://controller1.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
@@ -54,11 +54,11 @@ def test_fail_create_invalid_controller(empty_database: None) -> None:  # noqa: 
     assert response.status_code == 422
     response = client.post("/api/controllers", json={"id": "1"})
     assert response.status_code == 422
-    response = client.post("/api/controllers", json={"baseurl": "http://controller.example.com"})
+    response = client.post("/api/controllers", json={"baseurl": "http://controller.example.com/"})
     assert response.status_code == 422
     response = client.post("/api/controllers", json={"id": "", "baseurl": ""})
     assert response.status_code == 422
-    response = client.post("/api/controllers", json={"id": "", "baseurl": "http://controller.example.com"})
+    response = client.post("/api/controllers", json={"id": "", "baseurl": "http://controller.example.com/"})
     assert response.status_code == 422
     response = client.post("/api/controllers", json={"id": "1", "baseurl": "bla"})
     assert response.status_code == 422
@@ -76,20 +76,20 @@ def test_fail_get_missing_controller(empty_database: None) -> None:  # noqa: ARG
 def test_update_controller_name(empty_database: None) -> None:  # noqa: ARG001
     """Test that updating a controller name persists to the database."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller.example.com",
+        "baseurl": "http://controller.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
     new_controller_id = response.json()["id"]
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"name": "Controller 1"})
+    response = client.patch(f"/api/controllers/{new_controller_id}", json={"name": "Controller 1"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller.example.com",
+        "baseurl": "http://controller.example.com/",
         "name": "Controller 1",
         "status": "unknown",
     }
@@ -97,7 +97,7 @@ def test_update_controller_name(empty_database: None) -> None:  # noqa: ARG001
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller.example.com",
+        "baseurl": "http://controller.example.com/",
         "name": "Controller 1",
         "status": "unknown",
     }
@@ -106,20 +106,22 @@ def test_update_controller_name(empty_database: None) -> None:  # noqa: ARG001
 def test_update_controller_baseurl(empty_database: None) -> None:  # noqa: ARG001
     """Test that updating a controller baseurl persists to the database."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller.example.com",
+        "baseurl": "http://controller.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
     new_controller_id = response.json()["id"]
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"baseurl": "http://controller1.example.com"})
+    response = client.patch(
+        f"/api/controllers/{new_controller_id}", json={"baseurl": "http://controller1.example.com/"}
+    )
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller1.example.com",
+        "baseurl": "http://controller1.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
@@ -127,7 +129,7 @@ def test_update_controller_baseurl(empty_database: None) -> None:  # noqa: ARG00
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller1.example.com",
+        "baseurl": "http://controller1.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
@@ -136,40 +138,40 @@ def test_update_controller_baseurl(empty_database: None) -> None:  # noqa: ARG00
 def test_fail_update_missing_controller(empty_database: None) -> None:  # noqa: ARG001
     """Test that updating a non-existant controller fails."""
     client = TestClient(app)
-    response = client.put("/api/controllers/does-not-exist", json={"name": "Controller 1"})
+    response = client.patch("/api/controllers/does-not-exist", json={"name": "Controller 1"})
     assert response.status_code == 404
 
 
 def test_fail_update_invalid_controller(empty_database: None) -> None:  # noqa: ARG001
     """Test that updating a controller with invalid data fails."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller1.example.com",
+        "baseurl": "http://controller1.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
     new_controller_id = response.json()["id"]
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"baseurl": ""})
+    response = client.patch(f"/api/controllers/{new_controller_id}", json={"baseurl": ""})
     assert response.status_code == 422
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"baseurl": "bla"})
+    response = client.patch(f"/api/controllers/{new_controller_id}", json={"baseurl": "bla"})
     assert response.status_code == 422
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"baseurl": "bla://example.com"})
+    response = client.patch(f"/api/controllers/{new_controller_id}", json={"baseurl": "bla://example.com"})
     assert response.status_code == 422
-    response = client.put(f"/api/controllers/{new_controller_id}", json={"name": ""})
+    response = client.patch(f"/api/controllers/{new_controller_id}", json={"name": ""})
     assert response.status_code == 422
 
 
 def test_delete_controller(empty_database: None) -> None:  # noqa: ARG001
     """Test that deleting a controller works."""
     client = TestClient(app)
-    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com"})
+    response = client.post("/api/controllers", json={"id": "1", "baseurl": "http://controller1.example.com/"})
     assert response.status_code == 200
     assert response.json() == {
         "id": "1",
-        "baseurl": "http://controller1.example.com",
+        "baseurl": "http://controller1.example.com/",
         "name": "New controller",
         "status": "unknown",
     }
