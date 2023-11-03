@@ -1,8 +1,8 @@
 """The Controller database model."""
-from pydantic import BaseModel, AnyHttpUrl
+from pydantic import AnyHttpUrl, BaseModel
 from sqlalchemy import Column, Unicode
 
-from .meta import Base
+from mr_fat_controller.models.meta import Base
 
 
 class Controller(Base):
@@ -12,9 +12,9 @@ class Controller(Base):
     * id - The unique database id
     """
 
-    __tablename__ = 'controllers'
+    __tablename__ = "controllers"
 
-    id = Column(Unicode(64), primary_key=True)
+    id = Column(Unicode(64), primary_key=True)  # noqa: A003
     baseurl = Column(Unicode(255))
     name = Column(Unicode(255))
     status = Column(Unicode(255))
@@ -23,7 +23,7 @@ class Controller(Base):
 class ControllerModel(BaseModel):
     """The Pydantic Controller Model for validating responses."""
 
-    id: str
+    id: str  # noqa: A003
     baseurl: AnyHttpUrl
     name: str
     status: str

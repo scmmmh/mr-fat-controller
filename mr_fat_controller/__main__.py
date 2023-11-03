@@ -6,14 +6,13 @@ import asyncio
 
 from typer import Typer
 
-from .cli import execute_setup
-
+from mr_fat_controller.cli import execute_setup
 
 app = Typer()
 
 
 @app.command()
-def setup(drop_existing: bool = False) -> None:
+def setup(*, drop_existing: bool = False) -> None:
     """Set up the database."""
     asyncio.run(execute_setup(drop_existing=drop_existing))
 

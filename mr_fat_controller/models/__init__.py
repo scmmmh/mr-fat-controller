@@ -1,13 +1,14 @@
 """Functionality for database access."""
 import logging
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, AsyncEngine
-from sqlalchemy.orm import sessionmaker
 from threading import local
 from typing import Callable
 
-from .meta import MetaData, Base  # noqa
-from .controller import Controller, ControllerModel  # noqa
-from ..settings import settings
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
+from mr_fat_controller.models.controller import Controller, ControllerModel  # noqa
+from mr_fat_controller.models.meta import Base, MetaData  # noqa
+from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)
 local_cache = local()
@@ -18,7 +19,7 @@ def get_engine() -> AsyncEngine:
     try:
         return local_cache.engine
     except Exception:
-        local_cache.engine = create_async_engine(settings['dsn'])
+        local_cache.engine = create_async_engine(settings["dsn"])
         return local_cache.engine
 
 

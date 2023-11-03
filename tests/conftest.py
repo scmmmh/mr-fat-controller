@@ -1,5 +1,6 @@
 """Test fixtures."""
 import asyncio
+
 import pytest
 
 from mr_fat_controller.cli import execute_setup
