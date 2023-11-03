@@ -31,4 +31,4 @@ class ControllerModel(BaseModel):
     class Config:
         """Configuration to enable orm_mode."""
 
-        orm_mode = True
+        from_attributes = True
