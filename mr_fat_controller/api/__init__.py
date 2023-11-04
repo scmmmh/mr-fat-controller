@@ -6,12 +6,13 @@ from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from mr_fat_controller.api import controllers
+from mr_fat_controller.api import controllers, turnouts
 from mr_fat_controller.models import db_session
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 router.include_router(controllers.router)
+router.include_router(turnouts.router)
 
 
 class StatusModel(BaseModel):

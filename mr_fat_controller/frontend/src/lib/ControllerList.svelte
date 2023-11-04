@@ -13,7 +13,7 @@
   const controllers = writable([] as Controller[]);
 
   async function fetchControllers() {
-    const response = await window.fetch("/api/controllers");
+    const response = await window.fetch("/api/controllers/");
     controllers.set(await response.json());
     window.setTimeout(fetchControllers, 10000);
   }
@@ -33,7 +33,7 @@
   <ul>
     {#each $controllers as controller}
       <li class="flex flex-row">
-        <span>{controller.name}</span>
+        <span class="mr-4">{controller.name}</span>
         {#if controller.status === "ready"}<svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"

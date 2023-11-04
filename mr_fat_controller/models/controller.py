@@ -1,6 +1,7 @@
 """The Controller database model."""
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict
 from sqlalchemy import Column, Unicode
+from sqlalchemy.orm import relationship
 
 from mr_fat_controller.models.meta import Base
 
@@ -18,6 +19,8 @@ class Controller(Base):
     baseurl = Column(Unicode(255))
     name = Column(Unicode(255))
     status = Column(Unicode(255))
+
+    turnouts = relationship("Turnout", back_populates="controller")
 
 
 class ControllerModel(BaseModel):

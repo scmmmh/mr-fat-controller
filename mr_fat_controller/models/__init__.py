@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from mr_fat_controller.models.controller import Controller, ControllerModel  # noqa
 from mr_fat_controller.models.meta import Base, MetaData  # noqa
+from mr_fat_controller.models.turnout import Turnout, TurnoutModel, TurnoutTwoPinSolenoidParametersModel
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)

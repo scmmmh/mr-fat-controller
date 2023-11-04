@@ -12,9 +12,9 @@ app = Typer()
 
 
 @app.command()
-def setup(*, drop_existing: bool = False) -> None:
+def setup(*, drop_existing: bool = False, revert_last: bool = False) -> None:
     """Set up the database."""
-    asyncio.run(execute_setup(drop_existing=drop_existing))
+    asyncio.run(execute_setup(drop_existing=drop_existing, revert_last=revert_last))
 
 
 app()

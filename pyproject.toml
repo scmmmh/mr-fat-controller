@@ -26,6 +26,7 @@ dependencies = [
   "pydantic>=2,<3",
   "pydantic-settings>=2,<3",
   "sqlalchemy>=2,<3",
+  "sqlalchemy-json>=0.7.0,<0.8.0",
   "typer[all]<1",
   "uvicorn[standard]<1",
 ]

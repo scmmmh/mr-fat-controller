@@ -22,7 +22,7 @@ def upgrade() -> None:
     op.create_table(
         "controllers",
         metadata,
-        Column("id", Unicode(255), primary_key=True),
+        Column("id", Unicode(64), primary_key=True),
         Column("baseurl", Unicode(255)),
         Column("name", Unicode(255)),
         Column("status", Unicode(255)),
