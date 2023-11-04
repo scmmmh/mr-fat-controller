@@ -43,7 +43,7 @@ path = "mr_fat_controller/__about__.py"
 dependencies = ["coverage[toml]>=6.5", "pytest"]
 
 [tool.hatch.envs.default.scripts]
-server = "cd dev && uvicorn --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app"
+server = "cd dev && uvicorn --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app {args}"
 mr_fat_controller = "cd dev && python -m mr_fat_controller {args}"
 test = "cd tests && pytest {args:.}"
 test-cov = "cd tests && coverage run -m pytest {args:.}"
