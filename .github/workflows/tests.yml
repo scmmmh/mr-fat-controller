@@ -33,6 +33,9 @@ jobs:
         run: |
           sudo apt-get install python3-venv pipx
           pipx install hatch
+
+      - name: Build the Frontend
+        run: |
           cd mr_fat_controller/frontend
           npm install
           npm run build
