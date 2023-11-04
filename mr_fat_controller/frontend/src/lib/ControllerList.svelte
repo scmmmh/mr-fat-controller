@@ -1,30 +1,14 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import { writable } from "svelte/store";
 
-  type Controller = {
-    id: string;
-    name: string;
-    baseurl: string;
-    status: "unknown" | "ready" | "disconnected";
-  };
+  import {
+    controllers,
+    fetchControllers,
+    stopFetchControllers,
+  } from "../store";
 
-  let updateTimeout = -1;
-  const controllers = writable([] as Controller[]);
-
-  async function fetchControllers() {
-    const response = await window.fetch("/api/controllers/");
-    controllers.set(await response.json());
-    window.setTimeout(fetchControllers, 10000);
-  }
-
-  onMount(() => {
-    fetchControllers();
-  });
-
-  onDestroy(() => {
-    window.clearTimeout(updateTimeout);
-  });
+  onMount(fetchControllers);
+  onDestroy(stopFetchControllers);
 </script>
 
 <section class="mb-6">

@@ -1,25 +1,11 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import { writable } from "svelte/store";
   import TurnoutButton from "./TurnoutButton.svelte";
 
-  let updateTimeout = -1;
-  const turnouts = writable([] as Turnout[]);
+  import { turnouts, fetchTurnouts, stopFetchTurnouts } from "../store";
 
-  async function fetchTurnouts() {
-    window.clearTimeout(updateTimeout);
-    const response = await window.fetch("/api/turnouts/");
-    turnouts.set(await response.json());
-    window.setTimeout(fetchTurnouts, 10000);
-  }
-
-  onMount(() => {
-    fetchTurnouts();
-  });
-
-  onDestroy(() => {
-    window.clearTimeout(updateTimeout);
-  });
+  onMount(fetchTurnouts);
+  onDestroy(stopFetchTurnouts);
 </script>
 
 <section class="mb-6">
