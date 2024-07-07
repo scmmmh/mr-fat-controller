@@ -1,4 +1,5 @@
 """CLI functions."""
+
 import logging
 from importlib import resources
 

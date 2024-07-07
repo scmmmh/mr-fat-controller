@@ -1,4 +1,5 @@
 """Access to the application settings."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

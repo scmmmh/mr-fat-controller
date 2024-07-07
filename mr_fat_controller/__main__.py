@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """The MR Fat Controller CLI application."""
+
 import asyncio
 
 from typer import Typer

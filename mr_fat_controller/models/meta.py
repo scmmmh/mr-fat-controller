@@ -1,4 +1,5 @@
 """Database metadata settings."""
+
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.schema import MetaData
 
