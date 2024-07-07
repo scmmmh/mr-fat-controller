@@ -2,13 +2,20 @@
 
 import logging
 from collections.abc import AsyncGenerator
-from threading import local
+from contextlib import asynccontextmanager
+from threading import local  # pyright: ignore[reportAttributeAccessIssue]
 from typing import Any
 
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
-from mr_fat_controller.models.meta import Base, MetaData  # noqa
+from mr_fat_controller.models.device import Device  # noqa: F401
+from mr_fat_controller.models.entity import Entity  # noqa: F401
+from mr_fat_controller.models.meta import Base, MetaData  # noqa: F401
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -24,17 +31,29 @@ def get_engine() -> AsyncEngine:
         return local_cache.engine
 
 
-def get_session_factory() -> sessionmaker[Session]:
+def get_session_factory() -> async_sessionmaker[AsyncSession]:
     """Get a thread-local session factory."""
     try:
         return local_cache.session_factory
     except Exception:
-        local_cache.session_factory = sessionmaker(bind=get_engine(), expire_on_commit=False, class_=AsyncSession)
+        local_cache.session_factory = async_sessionmaker(
+            bind=get_engine(), expire_on_commit=False
+        )
         return local_cache.session_factory
 
 
+async def inject_db_session() -> AsyncGenerator[AsyncSession, Any]:
+    """Generate a database session."""
+    db = get_session_factory()()
+    try:
+        yield db
+    finally:
+        await db.close()
+
+
+@asynccontextmanager
 async def db_session() -> AsyncGenerator[AsyncSession, Any]:
-    """Get a database session."""
+    """Context manager db session."""
     db = get_session_factory()()
     try:
         yield db

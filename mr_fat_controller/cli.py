@@ -11,13 +11,17 @@ from mr_fat_controller.settings import settings
 logger = logging.getLogger(__name__)
 
 
-async def execute_setup(*, drop_existing: bool = False, revert_last: bool = False) -> None:
+async def execute_setup(
+    *, drop_existing: bool = False, revert_last: bool = False
+) -> None:
     """Run the actual setup."""
     from alembic import command
     from alembic.config import Config
 
     alembic_base = resources.files("mr_fat_controller") / "alembic"
-    with resources.as_file(alembic_base) as script_location:
+    with resources.as_file(
+        alembic_base
+    ) as script_location:  # pyright: ignore[reportGeneralTypeIssues]
         alembic_config = Config()
         alembic_config.set_main_option("script_location", str(script_location))
         alembic_config.set_main_option("sqlalchemy.url", settings.dsn)
@@ -37,5 +41,7 @@ async def execute_setup(*, drop_existing: bool = False, revert_last: bool = Fals
             except Exception as e:
                 logger.error(e)
 
-        async with get_engine().begin() as conn:
+        async with (
+            get_engine().begin() as conn  # pyright: ignore[reportGeneralTypeIssues]
+        ):
             await conn.run_sync(sync_db_ops)
