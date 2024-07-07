@@ -1,14 +1,14 @@
 """Functionality for database access."""
+
 import logging
+from collections.abc import AsyncGenerator
 from threading import local
-from typing import Callable
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
-from mr_fat_controller.models.controller import Controller, ControllerModel  # noqa
 from mr_fat_controller.models.meta import Base, MetaData  # noqa
-from mr_fat_controller.models.turnout import Turnout, TurnoutModel, TurnoutTwoPinSolenoidParametersModel
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def get_engine() -> AsyncEngine:
         return local_cache.engine
 
 
-def get_session_factory() -> Callable[[], AsyncSession]:
+def get_session_factory() -> sessionmaker[Session]:
     """Get a thread-local session factory."""
     try:
         return local_cache.session_factory
@@ -33,7 +33,7 @@ def get_session_factory() -> Callable[[], AsyncSession]:
         return local_cache.session_factory
 
 
-async def db_session() -> AsyncSession:
+async def db_session() -> AsyncGenerator[AsyncSession, Any]:
     """Get a database session."""
     db = get_session_factory()()
     try:

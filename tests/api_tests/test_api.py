@@ -1,4 +1,5 @@
 """Core API tests."""
+
 from fastapi.testclient import TestClient
 
 from mr_fat_controller.server import app
