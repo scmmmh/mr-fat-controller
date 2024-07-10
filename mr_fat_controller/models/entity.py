@@ -1,5 +1,6 @@
 """Models for a single entity."""
 
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer, Unicode
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
@@ -22,3 +23,19 @@ class Entity(Base):
     attrs = Column(NestedMutableJson)
 
     device = relationship("Device", back_populates="entities")
+    points = relationship("Points", back_populates="entity")
+
+
+class EntityModel(BaseModel):
+    """Model for returning an Entity."""
+
+    id: int
+    external_id: str
+    device_id: int
+    name: str
+    device_class: str
+    state_topic: str
+    command_topic: str
+    attrs: dict
+
+    model_config = ConfigDict(from_attributes=True)

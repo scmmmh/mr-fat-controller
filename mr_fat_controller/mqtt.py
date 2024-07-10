@@ -101,6 +101,7 @@ async def register_new_entity(data: dict) -> None:
             del data["device"]
             if db_entity is None:
                 db_entity = Entity(
+                    name=entity.name,
                     external_id=entity.unique_id,
                     device=device,
                     device_class=entity.device_class,
@@ -111,6 +112,7 @@ async def register_new_entity(data: dict) -> None:
                 dbsession.add(db_entity)
             else:
                 db_entity.device = device
+                db_entity.name = entity.name
                 db_entity.state_topic = entity.state_topic
                 db_entity.command_topic = entity.command_topic
                 db_entity.attrs = data

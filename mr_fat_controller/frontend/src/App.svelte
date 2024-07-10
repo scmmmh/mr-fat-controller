@@ -1,10 +1,13 @@
 <script lang="ts">
-  import ControllerList from "./lib/ControllerList.svelte";
-  import TurnoutList from "./lib/TurnoutList.svelte";
+  import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
+  import EntitiesList from "./lib/EntitiesList.svelte";
+
+  const client = new QueryClient();
 </script>
 
-<main class="max-w-xl mx-auto">
-  <h1 class="text-2xl font-bold mb-6">Model Railway Fat Controller</h1>
-  <ControllerList />
-  <TurnoutList />
-</main>
+<QueryClientProvider {client}>
+  <main class="max-w-xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Model Railway Fat Controller</h1>
+    <EntitiesList />
+  </main>
+</QueryClientProvider>

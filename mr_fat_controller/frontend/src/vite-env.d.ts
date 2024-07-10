@@ -1,16 +1,20 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
-type Controller = {
-  id: string,
+type Entity = {
+  id: int,
+  external_id: string,
+  device_id: Int16Array,
   name: string,
-  baseurl: string,
-  status: "unknown" | "ready" | "disconnected",
+  device_class: string,
+  state_topic: string,
+  command_topic: string,
+  attrs: any
 };
 
-type Turnout = {
-  id: string;
-  controller_id: string;
-  name: string;
-  state: "unknown" | "straight" | "turn";
+type Points = {
+  id: int,
+  entity_id: number,
+  through_state: string,
+  diverge_state: string,
 };

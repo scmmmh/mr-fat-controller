@@ -14,8 +14,9 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from mr_fat_controller.models.device import Device  # noqa: F401
-from mr_fat_controller.models.entity import Entity  # noqa: F401
+from mr_fat_controller.models.entity import Entity, EntityModel  # noqa: F401
 from mr_fat_controller.models.meta import Base, MetaData  # noqa: F401
+from mr_fat_controller.models.points import Points, PointsModel  # noqa: F401
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)

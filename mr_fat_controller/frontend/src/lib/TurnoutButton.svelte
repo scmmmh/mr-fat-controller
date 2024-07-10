@@ -2,8 +2,6 @@
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
 
-  import { controllers } from "../store";
-
   export let turnout: Turnout;
 
   const dispatch = createEventDispatcher();
