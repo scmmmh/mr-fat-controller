@@ -29,6 +29,7 @@ dependencies = [
   "sqlalchemy-json>=0.7.0,<0.8.0",
   "typer<1",
   "uvicorn[standard]<1",
+  "websockets>=12,<13",
 ]
 
 [project.urls]

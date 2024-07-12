@@ -4,38 +4,41 @@ import json
 import logging
 import ssl
 from asyncio import sleep
-from threading import local  # pyright: ignore[reportAttributeAccessIssue]
 
 from aiomqtt import Client
 from pydantic import BaseModel, conlist
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.models import Device, Entity, db_session
+from mr_fat_controller.models import Device, Entity, Points, PointsModel, db_session
 from mr_fat_controller.settings import settings
+from mr_fat_controller.state import state_manager
 
-local_cache = local()
 logger = logging.getLogger(__name__)
 
-if settings.mqtt.tls:
-    tls_context = ssl.create_default_context()
-    if settings.mqtt.insecure_tls:
-        tls_context.check_hostname = False
-        tls_context.verify_mode = ssl.CERT_NONE
-else:
-    tls_context = None
-local_cache.client = Client(
-    settings.mqtt.host,
-    port=settings.mqtt.port,
-    tls_context=tls_context,
-    username=settings.mqtt.username,
-    password=settings.mqtt.password,
-)
+
+def mqtt_client() -> Client:
+    if settings.mqtt.tls:
+        tls_context = ssl.create_default_context()
+        if settings.mqtt.insecure_tls:
+            tls_context.check_hostname = False
+            tls_context.verify_mode = ssl.CERT_NONE
+    else:
+        tls_context = None
+    return Client(
+        settings.mqtt.host,
+        port=settings.mqtt.port,
+        tls_context=tls_context,
+        username=settings.mqtt.username,
+        password=settings.mqtt.password,
+    )
 
 
 async def mqtt_listener() -> None:
     """Listener for the MQTT broker."""
     try:
-        async with local_cache.client as client:
+        async with mqtt_client() as client:
             await client.subscribe("mrfatcontroller/+/+/config")
             await client.subscribe("mrfatcontroller/+/+/state")
             await client.publish("mrfatcontroller/status", "online")
@@ -45,7 +48,7 @@ async def mqtt_listener() -> None:
                     if topic[-1] == "config":
                         await register_new_entity(json.loads(message.payload))
                     elif topic[-1] == "state":
-                        await state_update(
+                        await state_manager.update_state(
                             message.topic.value, json.loads(message.payload)
                         )
                 except Exception as e:
@@ -117,14 +120,20 @@ async def register_new_entity(data: dict) -> None:
                 db_entity.command_topic = entity.command_topic
                 db_entity.attrs = data
             await dbsession.commit()
+            await recalculate_state(dbsession)
     except Exception as e:
         logger.error(e)
 
 
-async def state_update(topic: str, data: dict) -> None:  # noqa: ARG001
-    async with db_session() as dbsession:  # pyright: ignore[reportGeneralTypeIssues]
-        query = select(Entity).filter(Entity.state_topic == topic)
-        result = await dbsession.execute(query)
-        entity = result.scalar()
-        if entity is not None:
-            print(entity)  # noqa: T201
+async def recalculate_state(dbsession: AsyncSession) -> None:
+    query = select(Points).join(Points.entity).options(selectinload(Points.entity))
+    result = await dbsession.execute(query)
+    for points in result.scalars():
+        await state_manager.add_state(
+            points.entity.state_topic,
+            {
+                "type": "points",
+                "model": PointsModel.model_validate(points).model_dump(),
+                "state": "unknown",
+            },
+        )

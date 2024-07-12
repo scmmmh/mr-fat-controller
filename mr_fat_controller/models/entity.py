@@ -23,7 +23,7 @@ class Entity(Base):
     attrs = Column(NestedMutableJson)
 
     device = relationship("Device", back_populates="entities")
-    points = relationship("Points", back_populates="entity")
+    points = relationship("Points", back_populates="entity", uselist=False)
 
 
 class EntityModel(BaseModel):
