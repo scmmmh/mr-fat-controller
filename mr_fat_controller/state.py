@@ -10,7 +10,9 @@ class StateManager:
         self.listeners = []
 
     async def add_state(self, topic: str, state: dict) -> None:
-        self.state[topic] = state
+        if topic not in self.state:
+            self.state[topic] = state
+            await self._notify()
 
     async def update_state(self, topic: str, data: dict) -> None:
         if topic in self.state:

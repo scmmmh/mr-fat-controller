@@ -38,6 +38,10 @@ def mqtt_client() -> Client:
 async def mqtt_listener() -> None:
     """Listener for the MQTT broker."""
     try:
+        async with (
+            db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
+        ):
+            await recalculate_state(dbsession)
         async with mqtt_client() as client:
             await client.subscribe("mrfatcontroller/+/+/config")
             await client.subscribe("mrfatcontroller/+/+/state")
@@ -141,12 +145,12 @@ async def recalculate_state(dbsession: AsyncSession) -> None:
         )
     query = select(PowerSwitch).join(PowerSwitch.entity).options(selectinload(PowerSwitch.entity))
     result = await dbsession.execute(query)
-    for points in result.scalars():
+    for power_switch in result.scalars():
         await state_manager.add_state(
-            points.entity.state_topic,
+            power_switch.entity.state_topic,
             {
                 "type": "power_switch",
-                "model": PowerSwitchModel.model_validate(points).model_dump(),
+                "model": PowerSwitchModel.model_validate(power_switch).model_dump(),
                 "state": "unknown",
             },
         )

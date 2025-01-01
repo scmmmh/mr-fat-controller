@@ -14,7 +14,7 @@ from mr_fat_controller.settings import settings
 WITHROTTLE_DEVICE = {"identifiers": ["signal-box-1-withrottle-bridge"], "name": "WiThrottle Bridge"}
 logger = logging.getLogger(__name__)
 
-power_state = "unknown"
+power_state = "UNKNOWN"
 
 
 def split_str(text: str, sep: str) -> list[str]:
@@ -57,6 +57,7 @@ async def process_roster_list(line: str) -> None:
 
 
 async def process_power_status(line: str, client: Client) -> None:
+    global power_state  # noqa: PLW0603
     if line == "PPA0":
         power_state = "OFF"
     elif line == "PPA1":
