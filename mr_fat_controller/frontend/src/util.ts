@@ -5,7 +5,7 @@
  * @returns The response data
  */
 export async function queryFn<ResultType>({ queryKey }: { queryKey: string[] }): Promise<ResultType> {
-  const response = await window.fetch("/api/" + queryKey.join("/"));
+  const response = await window.fetch("/api/" + queryKey.join(""));
   if (response.ok) {
     return response.json();
   } else {

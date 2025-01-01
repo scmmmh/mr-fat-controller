@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.models import Device, Entity, Points, PointsModel, db_session
+from mr_fat_controller.models import Device, Entity, Points, PointsModel, PowerSwitch, PowerSwitchModel, db_session
 from mr_fat_controller.settings import settings
 from mr_fat_controller.state import state_manager
 
@@ -48,14 +48,18 @@ async def mqtt_listener() -> None:
                     if topic[-1] == "config":
                         await register_new_entity(json.loads(message.payload))
                     elif topic[-1] == "state":
-                        await state_manager.update_state(
-                            message.topic.value, json.loads(message.payload)
-                        )
+                        await state_manager.update_state(message.topic.value, json.loads(message.payload))
                 except Exception as e:
                     logger.error(e)
         await sleep(5)
     except Exception as e:
         logger.error(e)
+
+
+async def full_state_refresh() -> None:
+    """Request that all connected devices refresh their state."""
+    async with mqtt_client() as client:
+        await client.publish("mrfatcontroller/status", "online")
 
 
 class NewDeviceModel(BaseModel):
@@ -83,9 +87,7 @@ async def register_new_entity(data: dict) -> None:
         async with (
             db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
         ):
-            query = select(Device).filter(
-                Device.external_id == entity.device.identifiers[0]
-            )
+            query = select(Device).filter(Device.external_id == entity.device.identifiers[0])
             result = await dbsession.execute(query)
             device = result.scalar()
             if device is None:
@@ -134,6 +136,17 @@ async def recalculate_state(dbsession: AsyncSession) -> None:
             {
                 "type": "points",
                 "model": PointsModel.model_validate(points).model_dump(),
+                "state": "unknown",
+            },
+        )
+    query = select(PowerSwitch).join(PowerSwitch.entity).options(selectinload(PowerSwitch.entity))
+    result = await dbsession.execute(query)
+    for points in result.scalars():
+        await state_manager.add_state(
+            points.entity.state_topic,
+            {
+                "type": "power_switch",
+                "model": PowerSwitchModel.model_validate(points).model_dump(),
                 "state": "unknown",
             },
         )

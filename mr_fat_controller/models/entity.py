@@ -1,6 +1,8 @@
 """Models for a single entity."""
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated, Any
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer, Unicode
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
@@ -24,6 +26,14 @@ class Entity(Base):
 
     device = relationship("Device", back_populates="entities")
     points = relationship("Points", back_populates="entity", uselist=False)
+    power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False)
+
+
+def object_to_model_id(model: Any | None) -> int | None:
+    """Return the model id for a model."""
+    if model is not None:
+        return model.id
+    return None
 
 
 class EntityModel(BaseModel):
@@ -37,5 +47,8 @@ class EntityModel(BaseModel):
     state_topic: str
     command_topic: str
     attrs: dict
+
+    points: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    power_switch: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)

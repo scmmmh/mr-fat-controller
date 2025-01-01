@@ -8,14 +8,21 @@ import asyncio
 from typer import Typer
 
 from mr_fat_controller.cli import execute_setup
+from mr_fat_controller.withrottle import withrottle_mqtt_bridge
 
 app = Typer()
 
 
 @app.command()
-def setup(*, drop_existing: bool = False, revert_last: bool = False) -> None:
+def setup(drop_existing: bool = False, revert_last: bool = False) -> None:  # noqa:FBT001, FBT002
     """Set up the database."""
     asyncio.run(execute_setup(drop_existing=drop_existing, revert_last=revert_last))
+
+
+@app.command()
+def withrottle_bridge() -> None:
+    """Run the WiThrottle to MQTT Bridge."""
+    asyncio.run(withrottle_mqtt_bridge())
 
 
 app()

@@ -9,7 +9,10 @@ type Entity = {
   device_class: string,
   state_topic: string,
   command_topic: string,
-  attrs: any
+  attrs: any,
+
+  points: number | null,
+  power_switch: number | null,
 };
 
 type Points = {
@@ -21,11 +24,22 @@ type Points = {
 
 type PointsState = {
   model: Points,
-  state: "through" | "diverge" | "unknown";
+  state: "through" | "diverge" | "unknown",
+};
+
+type PowerSwitch = {
+  id: int,
+  entity_id: number,
+};
+
+type PowerSwitchState = {
+  model: PowerSwitch,
+  state: "on" | "off" | "unknown",
 };
 
 type State = {
-  points: { [key: number]: PointsState }
+  points: { [key: number]: PointsState },
+  power_switch: { [key:number]: PowerSwitchState}
 };
 
 type PointsStatePayload = {
@@ -34,14 +48,27 @@ type PointsStatePayload = {
   state: "through" | "diverge" | "unknown"
 };
 
+type PowerSwitchStatePayload = {
+  type: "power_switch",
+  model: PowerSwitch,
+  state: "on" | "off" | "unknown",
+};
+
 type FullStateMessage = {
   type: "state",
-  payload: { [key: string]: PointsStatePayload }
+  payload: { [key: string]: PointsStatePayload | PowerSwitchStatePayload },
 };
 
 type SetPointsMessage = {
   type: "set-points",
-  payload: { id: number, state: "through" | "diverge" }
+  payload: { id: number, state: "through" | "diverge" },
 };
 
-type StateMessage = FullStateMessage | SetPointsMessage;
+type SetPowerSwitchMessage = {
+  type: "set-power_switch",
+  payload: { id: number, state: "on" | "off" },
+};
+
+type StateMessage = FullStateMessage | SetPointsMessage | SetPowerSwitchMessage;
+
+type SendStateMessageFunction = (msg: StateMessage) => void;

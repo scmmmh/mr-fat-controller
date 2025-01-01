@@ -17,6 +17,7 @@ from mr_fat_controller.models.device import Device  # noqa: F401
 from mr_fat_controller.models.entity import Entity, EntityModel  # noqa: F401
 from mr_fat_controller.models.meta import Base, MetaData  # noqa: F401
 from mr_fat_controller.models.points import Points, PointsModel  # noqa: F401
+from mr_fat_controller.models.power_switch import PowerSwitch, PowerSwitchModel  # noqa: F401
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -37,9 +38,7 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
     try:
         return local_cache.session_factory
     except Exception:
-        local_cache.session_factory = async_sessionmaker(
-            bind=get_engine(), expire_on_commit=False
-        )
+        local_cache.session_factory = async_sessionmaker(bind=get_engine(), expire_on_commit=False)
         return local_cache.session_factory
 
 

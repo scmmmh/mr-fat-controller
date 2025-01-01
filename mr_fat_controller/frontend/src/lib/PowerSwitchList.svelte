@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { mdiArrowRightTop, mdiArrowUp, mdiHelpRhombusOutline } from "@mdi/js";
+  import {
+    mdiHelpRhombusOutline,
+    mdiTransmissionTower,
+    mdiTransmissionTowerOff,
+  } from "@mdi/js";
   import { getContext } from "svelte";
   import { derived, type Writable } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
@@ -17,9 +21,9 @@
     refetchInterval: 60000,
   });
 
-  const points = createQuery({
+  const powerSwitches = createQuery({
     queryFn: queryFn<Points[]>,
-    queryKey: ["points"],
+    queryKey: ["power-switches"],
     refetchInterval: 60000,
   });
 
@@ -35,43 +39,43 @@
     }
   });
 
-  function togglePoints(points: Points) {
-    if ($state.points[points.id]) {
-      if ($state.points[points.id].state === "through") {
+  function togglePowerSwitch(powerSwitch: PowerSwitch) {
+    if ($state.power_switch[powerSwitch.id]) {
+      if ($state.power_switch[powerSwitch.id].state === "on") {
         sendStateMessage({
-          type: "set-points",
-          payload: { id: points.id, state: "diverge" },
+          type: "set-power_switch",
+          payload: { id: powerSwitch.id, state: "off" },
         });
-      } else if ($state.points[points.id].state === "diverge") {
+      } else {
         sendStateMessage({
-          type: "set-points",
-          payload: { id: points.id, state: "through" },
+          type: "set-power_switch",
+          payload: { id: powerSwitch.id, state: "on" },
         });
       }
     }
   }
 </script>
 
-{#if $points.isSuccess && $points.data.length > 0}
-  <h2 class="flex-1 text-xl font-bold mb-2">Points</h2>
+{#if $powerSwitches.isSuccess && $powerSwitches.data.length > 0}
+  <h2 class="flex-1 text-xl font-bold mb-2">Power Switches</h2>
 
   <ul>
-    {#each $points.data as turnout}
+    {#each $powerSwitches.data as power_switch}
       <li class="flex flex-row space-x-2 items-center">
-        {#if $entityForEntityId[turnout.entity_id]}
+        {#if $entityForEntityId[power_switch.entity_id]}
           <button
             on:click={() => {
-              togglePoints(turnout);
+              togglePowerSwitch(power_switch);
             }}
           >
-            {#if $state.points[turnout.id] && $state.points[turnout.id].state === "through"}
-              <Icon path={mdiArrowUp} />
-            {:else if $state.points[turnout.id] && $state.points[turnout.id].state === "diverge"}
-              <Icon path={mdiArrowRightTop} />
+            {#if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "on"}
+              <Icon path={mdiTransmissionTower} />
+            {:else if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "off"}
+              <Icon path={mdiTransmissionTowerOff} />
             {:else}
               <Icon path={mdiHelpRhombusOutline} />
             {/if}
-            <span>{$entityForEntityId[turnout.entity_id].name}</span>
+            <span>{$entityForEntityId[power_switch.entity_id].name}</span>
           </button>
         {/if}
       </li>

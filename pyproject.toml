@@ -46,6 +46,7 @@ dependencies = ["coverage[toml]>=6.5", "pytest", "ruff>=0.5.0"]
 [tool.hatch.envs.default.scripts]
 server = "cd dev && uvicorn --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app {args}"
 mr-fat-controller = "cd dev && python -m mr_fat_controller {args}"
+withrottle-bridge = "cd dev && python -m mr_fat_controller withrottle-bridge"
 build-frontend = "cd mr_fat_controller/frontend && npm install && npx vite build --watch"
 create-migration = "DSN='dummy' alembic -c alembic.ini revision {args}"
 test = "cd tests && pytest {args:.}"

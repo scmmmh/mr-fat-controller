@@ -9,15 +9,17 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.api.entities import router as entity_router
+from mr_fat_controller.api.entities import router as entities_router
 from mr_fat_controller.api.points import router as points_router
-from mr_fat_controller.models import Entity, Points, db_session, inject_db_session
+from mr_fat_controller.api.power_switches import router as power_switches_router
+from mr_fat_controller.models import Entity, Points, PowerSwitch, db_session, inject_db_session
 from mr_fat_controller.mqtt import mqtt_client
 from mr_fat_controller.state import state_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
-router.include_router(entity_router)
+router.include_router(power_switches_router)
+router.include_router(entities_router)
 router.include_router(points_router)
 
 
@@ -73,6 +75,16 @@ async def state_socket(websocket: WebSocket) -> None:
                                     entity.command_topic,
                                     json.dumps({"state": entity.points.diverge_state}),
                                 )
+                elif data["type"] == "set-power_switch":
+                    async with db_session() as dbsession:
+                        query = select(Entity).join(Entity.power_switch).filter(PowerSwitch.id == data["payload"]["id"])
+                        result = await dbsession.execute(query)
+                        entity = result.scalar()
+                        if entity is not None:
+                            await client.publish(
+                                entity.command_topic,
+                                json.dumps({"state": data["payload"]["state"].upper()}),
+                            )
     except WebSocketDisconnect:
         logger.debug("Websocket disconnected")
     except Exception as e:

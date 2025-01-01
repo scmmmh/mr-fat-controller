@@ -1,4 +1,7 @@
+import logging
 from collections.abc import Awaitable, Callable
+
+logger = logging.getLogger(__name__)
 
 
 class StateManager:
@@ -19,6 +22,11 @@ class StateManager:
                     obj["state"] = "diverge"
                 else:
                     obj["state"] = "unknown"
+            elif obj["type"] == "power_switch":
+                if data["state"] in ("ON", "OFF", "UNKNOWN"):
+                    obj["state"] = data["state"].lower()
+            else:
+                logger.debug(obj)
             await self._notify()
 
     async def add_listener(self, listener: Callable[[dict], Awaitable]) -> None:
