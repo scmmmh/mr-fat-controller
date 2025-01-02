@@ -2,11 +2,12 @@
   import {
     mdiElectricSwitch,
     mdiPowerPlug,
+    mdiReload,
     mdiSourceBranch,
     mdiSourceBranchPlus,
   } from "@mdi/js";
   import { Dialog, Label, RadioGroup } from "bits-ui";
-  import { derived } from "svelte/store";
+  import { getContext } from "svelte";
   import {
     createQuery,
     createMutation,
@@ -17,6 +18,9 @@
   import { queryFn } from "../util";
 
   const queryClient = useQueryClient();
+  const sendStateMessage = getContext(
+    "sendStateMessage",
+  ) as SendStateMessageFunction;
 
   const entities = createQuery({
     queryFn: queryFn<Entity[]>,
@@ -72,7 +76,17 @@
   });
 </script>
 
-<h2 class="text-xl font-bold mb-2">Entities</h2>
+<div class="flex flex row">
+  <h2 class="flex-1 text-xl font-bold mb-2">Entities</h2>
+  <button
+    on:click={() => {
+      sendStateMessage({
+        type: "refresh",
+        payload: {},
+      });
+    }}><Icon path={mdiReload} label="Refresh the entities" /></button
+  >
+</div>
 
 {#if $entities.isSuccess}
   <ul>

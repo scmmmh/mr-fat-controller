@@ -1,5 +1,6 @@
 """MQTT functionality."""
 
+import asyncio
 import json
 import logging
 import ssl
@@ -37,27 +38,31 @@ def mqtt_client() -> Client:
 
 async def mqtt_listener() -> None:
     """Listener for the MQTT broker."""
-    try:
-        async with (
-            db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
-        ):
-            await recalculate_state(dbsession)
-        async with mqtt_client() as client:
-            await client.subscribe("mrfatcontroller/+/+/config")
-            await client.subscribe("mrfatcontroller/+/+/state")
-            await client.publish("mrfatcontroller/status", "online")
-            async for message in client.messages:
-                try:
-                    topic = tuple(message.topic.value.split("/"))
-                    if topic[-1] == "config":
-                        await register_new_entity(json.loads(message.payload))
-                    elif topic[-1] == "state":
-                        await state_manager.update_state(message.topic.value, json.loads(message.payload))
-                except Exception as e:
-                    logger.error(e)
-        await sleep(5)
-    except Exception as e:
-        logger.error(e)
+    running = True
+    while running:
+        try:
+            async with (
+                db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
+            ):
+                await recalculate_state(dbsession)
+            async with mqtt_client() as client:
+                await client.subscribe("mrfatcontroller/+/+/config")
+                await client.subscribe("mrfatcontroller/+/+/state")
+                await client.publish("mrfatcontroller/status", "online")
+                async for message in client.messages:
+                    try:
+                        topic = tuple(message.topic.value.split("/"))
+                        if topic[-1] == "config":
+                            await register_new_entity(json.loads(message.payload))
+                        elif topic[-1] == "state":
+                            await state_manager.update_state(message.topic.value, json.loads(message.payload))
+                    except Exception as e:
+                        logger.error(e)
+        except asyncio.CancelledError:
+            running = False
+        except Exception as e:
+            logger.error(e)
+            await sleep(5)
 
 
 async def full_state_refresh() -> None:
