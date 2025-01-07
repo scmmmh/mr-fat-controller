@@ -4,9 +4,9 @@
     mdiElectricSwitch,
     mdiHelpRhombusOutline,
     mdiLeak,
-    mdiPlusCircleOutline,
     mdiPowerPlug,
     mdiReload,
+    mdiShapeCirclePlus,
     mdiSourceBranch,
     mdiSourceBranchPlus,
   } from "@mdi/js";
@@ -161,7 +161,7 @@
                 connectBlockDetectorOpen = true;
               }}
               ><Icon
-                path={mdiPlusCircleOutline}
+                path={mdiShapeCirclePlus}
                 label="Add new block detector"
               /></button
             >
