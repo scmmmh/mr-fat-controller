@@ -12,7 +12,17 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.models import Device, Entity, Points, PointsModel, PowerSwitch, PowerSwitchModel, db_session
+from mr_fat_controller.models import (
+    BlockDetector,
+    BlockDetectorModel,
+    Device,
+    Entity,
+    Points,
+    PointsModel,
+    PowerSwitch,
+    PowerSwitchModel,
+    db_session,
+)
 from mr_fat_controller.settings import settings
 from mr_fat_controller.state import state_manager
 
@@ -85,7 +95,7 @@ class NewEntityModel(BaseModel):
     name: str
     device_class: str
     state_topic: str
-    command_topic: str
+    command_topic: str | None = None
     device: NewDeviceModel
 
 
@@ -137,7 +147,18 @@ async def register_new_entity(data: dict) -> None:
 
 
 async def recalculate_state(dbsession: AsyncSession) -> None:
-    query = select(Points).join(Points.entity).options(selectinload(Points.entity))
+    query = select(BlockDetector).options(selectinload(BlockDetector.entity))
+    result = await dbsession.execute(query)
+    for block_detector in result.scalars():
+        await state_manager.add_state(
+            block_detector.entity.state_topic,
+            {
+                "type": "block_detector",
+                "model": BlockDetectorModel.model_validate(block_detector).model_dump(),
+                "state": "unknown",
+            },
+        )
+    query = select(Points).options(selectinload(Points.entity))
     result = await dbsession.execute(query)
     for points in result.scalars():
         await state_manager.add_state(
@@ -148,7 +169,7 @@ async def recalculate_state(dbsession: AsyncSession) -> None:
                 "state": "unknown",
             },
         )
-    query = select(PowerSwitch).join(PowerSwitch.entity).options(selectinload(PowerSwitch.entity))
+    query = select(PowerSwitch).options(selectinload(PowerSwitch.entity))
     result = await dbsession.execute(query)
     for power_switch in result.scalars():
         await state_manager.add_state(

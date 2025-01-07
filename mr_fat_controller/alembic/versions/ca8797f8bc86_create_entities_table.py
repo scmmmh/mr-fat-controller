@@ -27,7 +27,7 @@ def upgrade() -> None:
         Column("name", Unicode(255)),
         Column("device_class", Unicode(255)),
         Column("state_topic", Unicode(255), unique=True),
-        Column("command_topic", Unicode(255), unique=True),
+        Column("command_topic", Unicode(255), nullable=True),
         Column("attrs", NestedMutableJson),
     )
 

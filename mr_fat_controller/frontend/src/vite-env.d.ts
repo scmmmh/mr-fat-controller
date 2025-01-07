@@ -11,6 +11,7 @@ type Entity = {
   command_topic: string,
   attrs: any,
 
+  block_detector: number | null,
   points: number | null,
   power_switch: number | null,
 };

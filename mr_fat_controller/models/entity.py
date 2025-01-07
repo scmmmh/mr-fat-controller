@@ -21,9 +21,10 @@ class Entity(Base):
     name = Column(Unicode(255))
     device_class = Column(Unicode(255))
     state_topic = Column(Unicode(255), unique=True)
-    command_topic = Column(Unicode(255), unique=True)
+    command_topic = Column(Unicode(255), nullable=True)
     attrs = Column(NestedMutableJson)
 
+    block_detector = relationship("BlockDetector", back_populates="entity", uselist=False)
     device = relationship("Device", back_populates="entities")
     points = relationship("Points", back_populates="entity", uselist=False)
     power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False)
@@ -45,9 +46,10 @@ class EntityModel(BaseModel):
     name: str
     device_class: str
     state_topic: str
-    command_topic: str
+    command_topic: str | None
     attrs: dict
 
+    block_detector: Annotated[int | None, BeforeValidator(object_to_model_id)]
     points: Annotated[int | None, BeforeValidator(object_to_model_id)]
     power_switch: Annotated[int | None, BeforeValidator(object_to_model_id)]
 

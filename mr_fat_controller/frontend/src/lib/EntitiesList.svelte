@@ -1,6 +1,10 @@
 <script lang="ts">
   import {
+    mdiChip,
     mdiElectricSwitch,
+    mdiHelpRhombusOutline,
+    mdiLeak,
+    mdiPlusCircleOutline,
     mdiPowerPlug,
     mdiReload,
     mdiSourceBranch,
@@ -74,6 +78,28 @@
       }
     },
   });
+
+  let connectBlockDetectorOpen = false;
+  let connectBlockDetectorEntity: Entity | null = null;
+  const connectAsBlockDetector = createMutation({
+    mutationFn: async (entity: Entity) => {
+      const response = await window.fetch("/api/block-detectors", {
+        method: "POST",
+        body: JSON.stringify({
+          entity_id: entity.id,
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["entities"] });
+        queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
+        connectBlockDetectorOpen = false;
+      }
+    },
+  });
 </script>
 
 <div class="flex flex row">
@@ -98,11 +124,15 @@
           <Icon path={mdiPowerPlug} />
         {:else if entity.device_class === "switch"}
           <Icon path={mdiElectricSwitch} />
+        {:else if entity.device_class === "decoder"}
+          <Icon path={mdiChip} />
+        {:else if entity.device_class === "binary_sensor"}
+          <Icon path={mdiLeak} />
         {:else}
-          <Icon />
+          <Icon path={mdiHelpRhombusOutline} />
         {/if}
         <span class="flex-1">{entity.name}</span>
-        {#if entity.points === null && entity.power_switch === null}
+        {#if entity.points === null && entity.power_switch === null && entity.block_detector === null}
           {#if entity.device_class === "switch"}
             <button
               on:click={() => {
@@ -122,6 +152,17 @@
               ><Icon
                 path={mdiPowerPlug}
                 label="Add new power control"
+              /></button
+            >
+          {:else if entity.device_class === "binary_sensor"}
+            <button
+              on:click={() => {
+                connectBlockDetectorEntity = entity;
+                connectBlockDetectorOpen = true;
+              }}
+              ><Icon
+                path={mdiPlusCircleOutline}
+                label="Add new block detector"
               /></button
             >
           {/if}
@@ -200,6 +241,39 @@
           on:submit={(ev) => {
             ev.preventDefault();
             $connectAsPower.mutate(connectPowerEntity);
+          }}
+          class="flex-1 flex flex-col overflow-hidden"
+        >
+          <div class="flex-1"></div>
+          <div class="px-4 py-2 flex flex-row justify-end gap-4">
+            <Dialog.Close
+              class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+              >Don't connect</Dialog.Close
+            >
+            <button
+              type="submit"
+              class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+              >Connect</button
+            >
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
+
+  <Dialog.Root bind:open={connectBlockDetectorOpen}>
+    <Dialog.Portal>
+      <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
+      <Dialog.Content
+        class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 h-60 flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+      >
+        <Dialog.Title class="px-4 py-2 border-b-2 border-black font-bold"
+          >Connect {connectBlockDetectorEntity.name} as a block detector</Dialog.Title
+        >
+        <form
+          on:submit={(ev) => {
+            ev.preventDefault();
+            $connectAsBlockDetector.mutate(connectBlockDetectorEntity);
           }}
           class="flex-1 flex flex-col overflow-hidden"
         >

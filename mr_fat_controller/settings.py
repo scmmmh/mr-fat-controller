@@ -20,6 +20,7 @@ class WiThrottleSettings(BaseModel):
 
     host: str | None = None
     port: int = 12090
+    name: str = "Unknown"
 
 
 class Settings(BaseSettings):

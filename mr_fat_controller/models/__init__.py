@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from mr_fat_controller.models.block_detectors import BlockDetector, BlockDetectorModel  # noqa: F401
 from mr_fat_controller.models.device import Device  # noqa: F401
 from mr_fat_controller.models.entity import Entity, EntityModel  # noqa: F401
 from mr_fat_controller.models.meta import Base, MetaData  # noqa: F401

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import re
 import signal
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -11,11 +12,6 @@ from aiomqtt import Client
 from mr_fat_controller.mqtt import mqtt_client
 from mr_fat_controller.settings import settings
 
-WITHROTTLE_DEVICE = {"identifiers": ["signal-box-1-withrottle-bridge"], "name": "WiThrottle Bridge"}
-logger = logging.getLogger(__name__)
-
-power_state = "UNKNOWN"
-
 
 def split_str(text: str, sep: str) -> list[str]:
     parts = []
@@ -25,6 +21,20 @@ def split_str(text: str, sep: str) -> list[str]:
     if text != "":
         parts.append(text)
     return parts
+
+
+def slugify(text: str) -> str:
+    text = re.sub(r"\s+", "-", text.lower())
+    return text
+
+
+WITHROTTLE_DEVICE = {
+    "identifiers": [f"{slugify(settings.withrottle.name)}-withrottle-bridge"],
+    "name": settings.withrottle.name,
+}
+logger = logging.getLogger(__name__)
+
+power_state = "UNKNOWN"
 
 
 @asynccontextmanager
@@ -38,22 +48,24 @@ async def withrottle_client() -> AsyncGenerator[tuple[asyncio.StreamReader, asyn
     await writer.drain()
 
 
-async def process_roster_list(line: str) -> None:
+async def process_roster_list(line: str, client: Client) -> None:
     line = line[2:]
     entries = split_str(line, "]\\[")
     for entry in entries[1:]:
         name, address, address_type = split_str(entry, "}|{")
-        address = int(address)
-        # async with (
-        #     db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
-        # ):
-        #     query = select(Decoder).filter(Decoder.address == address)
-        #     result = await dbsession.execute(query)
-        #     decoder = result.scalar()
-        #     if decoder is None:
-        #         decoder = Decoder(name=name, address=address, address_type=address_type, attrs={})
-        #         dbsession.add(decoder)
-        #         await dbsession.commit()
+        await client.publish(
+            f"mrfatcontroller/decoder/{slugify(settings.withrottle.name)}-{address_type}{address}-{slugify(name)}/config",
+            json.dumps(
+                {
+                    "unique_id": f"{slugify(settings.withrottle.name)}-{address_type}{address}-{slugify(name)}",
+                    "name": name,
+                    "device_class": "decoder",
+                    "state_topic": f"mrfatcontroller/decoder/{slugify(settings.withrottle.name)}-{address_type}{address}-{slugify(name)}/state",  # noqa: E501
+                    "command_topic": f"mrfatcontroller/decoder/{slugify(settings.withrottle.name)}-{address_type}{address}-{slugify(name)}/set",  # noqa: E501
+                    "device": WITHROTTLE_DEVICE,
+                }
+            ),
+        )
 
 
 async def process_power_status(line: str, client: Client) -> None:
@@ -65,7 +77,8 @@ async def process_power_status(line: str, client: Client) -> None:
     elif line == "PPA2":
         power_state = "UNKNOWN"
     await client.publish(
-        "mrfatcontroller/switch/signal-box-1-withrottle-power/state", json.dumps({"state": power_state})
+        f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+        json.dumps({"state": power_state}),
     )
 
 
@@ -86,7 +99,7 @@ async def withrottle_to_mqtt(wt_reader: asyncio.StreamReader, wt_writer: asyncio
         while True:
             line = (await wt_reader.readline()).decode("utf-8").strip()
             if line.startswith("RL"):  # Roster list
-                await process_roster_list(line)
+                await process_roster_list(line, client)
             elif line.startswith("PPA"):  # Power status
                 await process_power_status(line, client)
             elif line.startswith("*"):  # Heartbeat timeout
@@ -111,14 +124,18 @@ async def withrottle_to_mqtt(wt_reader: asyncio.StreamReader, wt_writer: asyncio
 async def mqtt_to_withrottle(wt_writer: asyncio.StreamWriter, client: Client) -> None:
     try:
         await client.subscribe("mrfatcontroller/status")
-        await client.subscribe("mrfatcontroller/switch/signal-box-1-withrottle-power/set")
+        await client.subscribe(f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set")
         async for message in client.messages:
             if message.topic.value == "mrfatcontroller/status":
                 if message.payload.decode("utf-8") == "online":
                     await client.publish(
-                        "mrfatcontroller/switch/signal-box-1-withrottle-power/state", json.dumps({"state": power_state})
+                        f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+                        json.dumps({"state": power_state}),
                     )
-            elif message.topic.value == "mrfatcontroller/switch/signal-box-1-withrottle-power/set":
+            elif (
+                message.topic.value
+                == f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set"
+            ):
                 data = json.loads(message.payload)
                 if data["state"] == "ON":
                     wt_writer.write(b"PPA1\n")
@@ -134,14 +151,14 @@ async def withrottle_mqtt_bridge():
     async with mqtt_client() as client:
         async with withrottle_client() as (wt_reader, wt_writer):
             await client.publish(
-                "mrfatcontroller/switch/signal-box-1-withrottle-power/config",
+                f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/config",
                 json.dumps(
                     {
-                        "unique_id": "signal-box-1-withrottle-power",
-                        "name": "WiThrottle Power",
+                        "unique_id": f"{slugify(settings.withrottle.name)}-withrottle-power",
+                        "name": f"{settings.withrottle.name} WiThrottle Power",
                         "device_class": "switch",
-                        "state_topic": "mrfatcontroller/switch/signal-box-1-withrottle-power/state",
-                        "command_topic": "mrfatcontroller/switch/signal-box-1-withrottle-power/set",
+                        "state_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",  # noqa: E501
+                        "command_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set",  # noqa: E501
                         "device": WITHROTTLE_DEVICE,
                     }
                 ),

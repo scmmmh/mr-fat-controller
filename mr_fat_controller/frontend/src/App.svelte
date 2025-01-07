@@ -1,6 +1,7 @@
 <script lang="ts">
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
 
+  import BlockDetectorList from "./lib/BlockDetectorList.svelte";
   import EntitiesList from "./lib/EntitiesList.svelte";
   import PointsList from "./lib/PointsList.svelte";
   import PowerSwitchList from "./lib/PowerSwitchList.svelte";
@@ -22,6 +23,9 @@
         </div>
         <div>
           <PointsList />
+        </div>
+        <div>
+          <BlockDetectorList />
         </div>
       </div>
     </main>

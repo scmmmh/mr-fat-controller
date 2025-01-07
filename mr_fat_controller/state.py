@@ -27,6 +27,9 @@ class StateManager:
             elif obj["type"] == "power_switch":
                 if data["state"] in ("ON", "OFF", "UNKNOWN"):
                     obj["state"] = data["state"].lower()
+            elif obj["type"] == "block_detector":
+                if data["state"] in ("ON", "OFF"):
+                    obj["state"] = data["state"].lower()
             else:
                 logger.debug(obj)
             await self._notify()

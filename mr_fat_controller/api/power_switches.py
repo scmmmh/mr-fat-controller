@@ -1,3 +1,5 @@
+"""API endpoints for power switches."""
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -9,7 +11,7 @@ router = APIRouter(prefix="/power-switches")
 
 
 class CreatePowerSwitchModel(BaseModel):
-    """Model for validating a new Points."""
+    """Model for validating a new PowerSwitches."""
 
     entity_id: int
 

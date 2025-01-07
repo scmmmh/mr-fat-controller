@@ -3,20 +3,28 @@
   import { setContext } from "svelte";
   import { writable } from "svelte/store";
 
-  const state = writable({ points: {}, power_switch: {} } as State);
+  const state = writable({
+    block_detector: {},
+    points: {},
+    power_switch: {},
+  } as State);
   let disconnected = true;
   setContext("state", state);
   let ws: WebSocket | null = null;
 
   function connect() {
-    state.set({ points: {}, power_switch: {} });
+    state.set({ block_detector: {}, points: {}, power_switch: {} });
 
     ws = new WebSocket("/api/state");
     ws.addEventListener("message", (ev: MessageEvent) => {
       disconnected = false;
       const msg = JSON.parse(ev.data) as StateMessage;
       if (msg.type === "state") {
-        const new_state = { points: {}, power_switch: {} } as State;
+        const new_state = {
+          block_detector: {},
+          points: {},
+          power_switch: {},
+        } as State;
         Object.entries(msg.payload).forEach(([key, obj]) => {
           new_state[obj.type][obj.model.id] = {
             model: obj.model,
