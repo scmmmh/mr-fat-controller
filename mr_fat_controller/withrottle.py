@@ -70,16 +70,25 @@ async def process_roster_list(line: str, client: Client) -> None:
 
 async def process_power_status(line: str, client: Client) -> None:
     global power_state  # noqa: PLW0603
+    initial_unknown = False
     if line == "PPA0":
         power_state = "OFF"
     elif line == "PPA1":
         power_state = "ON"
     elif line == "PPA2":
+        if power_state == "UNKNOWN":
+            initial_unknown = True
         power_state = "UNKNOWN"
     await client.publish(
         f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
         json.dumps({"state": power_state}),
     )
+    if initial_unknown:
+        await asyncio.sleep(5)
+        await client.publish(
+            f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set",
+            json.dumps({"state": "OFF"}),
+        )
 
 
 async def withrottle_heartbeat(timeout: int, writer: asyncio.StreamWriter) -> None:
