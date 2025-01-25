@@ -15,11 +15,20 @@ class MqttSettings(BaseModel):
     insecure_tls: bool = True
 
 
+class WiThrottleSettings(BaseModel):
+    """WiThrottle Bridge settings model."""
+
+    host: str | None = None
+    port: int = 12090
+    name: str = "Unknown"
+
+
 class Settings(BaseSettings):
     """Application settings model."""
 
     dsn: str
     mqtt: MqttSettings
+    withrottle: WiThrottleSettings = WiThrottleSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env",

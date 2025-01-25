@@ -1,11 +1,14 @@
 """Models for a single entity."""
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer, Unicode
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from mr_fat_controller.models.meta import Base
+from mr_fat_controller.models.util import object_to_model_id
 
 
 class Entity(Base):
@@ -19,11 +22,13 @@ class Entity(Base):
     name = Column(Unicode(255))
     device_class = Column(Unicode(255))
     state_topic = Column(Unicode(255), unique=True)
-    command_topic = Column(Unicode(255), unique=True)
+    command_topic = Column(Unicode(255), nullable=True)
     attrs = Column(NestedMutableJson)
 
+    block_detector = relationship("BlockDetector", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     device = relationship("Device", back_populates="entities")
-    points = relationship("Points", back_populates="entity")
+    points = relationship("Points", back_populates="entity", uselist=False, cascade="all, delete-orphan")
+    power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False, cascade="all, delete-orphan")
 
 
 class EntityModel(BaseModel):
@@ -31,11 +36,15 @@ class EntityModel(BaseModel):
 
     id: int
     external_id: str
-    device_id: int
     name: str
     device_class: str
     state_topic: str
-    command_topic: str
+    command_topic: str | None
     attrs: dict
+
+    block_detector: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    device: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    points: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    power_switch: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)

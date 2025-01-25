@@ -1,58 +1,84 @@
 """MQTT functionality."""
 
+import asyncio
 import json
 import logging
 import ssl
 from asyncio import sleep
-from threading import local  # pyright: ignore[reportAttributeAccessIssue]
 
 from aiomqtt import Client
 from pydantic import BaseModel, conlist
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.models import Device, Entity, db_session
+from mr_fat_controller.models import (
+    BlockDetector,
+    BlockDetectorModel,
+    Device,
+    Entity,
+    Points,
+    PointsModel,
+    PowerSwitch,
+    PowerSwitchModel,
+    db_session,
+)
 from mr_fat_controller.settings import settings
+from mr_fat_controller.state import state_manager
 
-local_cache = local()
 logger = logging.getLogger(__name__)
 
-if settings.mqtt.tls:
-    tls_context = ssl.create_default_context()
-    if settings.mqtt.insecure_tls:
-        tls_context.check_hostname = False
-        tls_context.verify_mode = ssl.CERT_NONE
-else:
-    tls_context = None
-local_cache.client = Client(
-    settings.mqtt.host,
-    port=settings.mqtt.port,
-    tls_context=tls_context,
-    username=settings.mqtt.username,
-    password=settings.mqtt.password,
-)
+
+def mqtt_client() -> Client:
+    if settings.mqtt.tls:
+        tls_context = ssl.create_default_context()
+        if settings.mqtt.insecure_tls:
+            tls_context.check_hostname = False
+            tls_context.verify_mode = ssl.CERT_NONE
+    else:
+        tls_context = None
+    return Client(
+        settings.mqtt.host,
+        port=settings.mqtt.port,
+        tls_context=tls_context,
+        username=settings.mqtt.username,
+        password=settings.mqtt.password,
+    )
 
 
 async def mqtt_listener() -> None:
     """Listener for the MQTT broker."""
-    try:
-        async with local_cache.client as client:
-            await client.subscribe("mrfatcontroller/+/+/config")
-            await client.subscribe("mrfatcontroller/+/+/state")
-            await client.publish("mrfatcontroller/status", "online")
-            async for message in client.messages:
-                try:
-                    topic = tuple(message.topic.value.split("/"))
-                    if topic[-1] == "config":
-                        await register_new_entity(json.loads(message.payload))
-                    elif topic[-1] == "state":
-                        await state_update(
-                            message.topic.value, json.loads(message.payload)
-                        )
-                except Exception as e:
-                    logger.error(e)
-        await sleep(5)
-    except Exception as e:
-        logger.error(e)
+    running = True
+    while running:
+        try:
+            async with (
+                db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
+            ):
+                await recalculate_state(dbsession)
+            async with mqtt_client() as client:
+                await client.subscribe("mrfatcontroller/+/+/config")
+                await client.subscribe("mrfatcontroller/+/+/state")
+                await client.publish("mrfatcontroller/status", "online")
+                async for message in client.messages:
+                    try:
+                        topic = tuple(message.topic.value.split("/"))
+                        if topic[-1] == "config":
+                            await register_new_entity(json.loads(message.payload))
+                        elif topic[-1] == "state":
+                            await state_manager.update_state(message.topic.value, json.loads(message.payload))
+                    except Exception as e:
+                        logger.error(e)
+        except asyncio.CancelledError:
+            running = False
+        except Exception as e:
+            logger.error(e)
+            await sleep(5)
+
+
+async def full_state_refresh() -> None:
+    """Request that all connected devices refresh their state."""
+    async with mqtt_client() as client:
+        await client.publish("mrfatcontroller/status", "online")
 
 
 class NewDeviceModel(BaseModel):
@@ -69,7 +95,7 @@ class NewEntityModel(BaseModel):
     name: str
     device_class: str
     state_topic: str
-    command_topic: str
+    command_topic: str | None = None
     device: NewDeviceModel
 
 
@@ -80,9 +106,7 @@ async def register_new_entity(data: dict) -> None:
         async with (
             db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
         ):
-            query = select(Device).filter(
-                Device.external_id == entity.device.identifiers[0]
-            )
+            query = select(Device).filter(Device.external_id == entity.device.identifiers[0])
             result = await dbsession.execute(query)
             device = result.scalar()
             if device is None:
@@ -117,14 +141,42 @@ async def register_new_entity(data: dict) -> None:
                 db_entity.command_topic = entity.command_topic
                 db_entity.attrs = data
             await dbsession.commit()
+            await recalculate_state(dbsession)
     except Exception as e:
         logger.error(e)
 
 
-async def state_update(topic: str, data: dict) -> None:  # noqa: ARG001
-    async with db_session() as dbsession:  # pyright: ignore[reportGeneralTypeIssues]
-        query = select(Entity).filter(Entity.state_topic == topic)
-        result = await dbsession.execute(query)
-        entity = result.scalar()
-        if entity is not None:
-            print(entity)  # noqa: T201
+async def recalculate_state(dbsession: AsyncSession) -> None:
+    query = select(BlockDetector).options(selectinload(BlockDetector.entity))
+    result = await dbsession.execute(query)
+    for block_detector in result.scalars():
+        await state_manager.add_state(
+            block_detector.entity.state_topic,
+            {
+                "type": "block_detector",
+                "model": BlockDetectorModel.model_validate(block_detector).model_dump(),
+                "state": "unknown",
+            },
+        )
+    query = select(Points).options(selectinload(Points.entity))
+    result = await dbsession.execute(query)
+    for points in result.scalars():
+        await state_manager.add_state(
+            points.entity.state_topic,
+            {
+                "type": "points",
+                "model": PointsModel.model_validate(points).model_dump(),
+                "state": "unknown",
+            },
+        )
+    query = select(PowerSwitch).options(selectinload(PowerSwitch.entity))
+    result = await dbsession.execute(query)
+    for power_switch in result.scalars():
+        await state_manager.add_state(
+            power_switch.entity.state_topic,
+            {
+                "type": "power_switch",
+                "model": PowerSwitchModel.model_validate(power_switch).model_dump(),
+                "state": "unknown",
+            },
+        )

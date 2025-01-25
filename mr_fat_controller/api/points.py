@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from mr_fat_controller.models import Points, PointsModel, inject_db_session
+from mr_fat_controller.mqtt import full_state_refresh, recalculate_state
 
 router = APIRouter(prefix="/points")
 
@@ -17,10 +18,8 @@ class CreatePointsModel(BaseModel):
     diverge_state: str
 
 
-@router.post("/", response_model=PointsModel)
-async def create_points(
-    data: CreatePointsModel, dbsession=Depends(inject_db_session)
-) -> Points:
+@router.post("", response_model=PointsModel)
+async def create_points(data: CreatePointsModel, dbsession=Depends(inject_db_session)) -> Points:
     """Create new points."""
     points = Points(
         entity_id=data.entity_id,
@@ -29,10 +28,12 @@ async def create_points(
     )
     dbsession.add(points)
     await dbsession.commit()
+    await recalculate_state(dbsession)
+    await full_state_refresh()
     return points
 
 
-@router.get("/", response_model=list[PointsModel])
+@router.get("", response_model=list[PointsModel])
 async def get_points(dbsession=Depends(inject_db_session)) -> list[Points]:
     """Return all points."""
     query = select(Points).order_by(Points.id)
