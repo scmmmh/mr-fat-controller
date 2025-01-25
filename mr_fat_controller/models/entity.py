@@ -24,10 +24,10 @@ class Entity(Base):
     command_topic = Column(Unicode(255), nullable=True)
     attrs = Column(NestedMutableJson)
 
-    block_detector = relationship("BlockDetector", back_populates="entity", uselist=False)
+    block_detector = relationship("BlockDetector", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     device = relationship("Device", back_populates="entities")
-    points = relationship("Points", back_populates="entity", uselist=False)
-    power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False)
+    points = relationship("Points", back_populates="entity", uselist=False, cascade="all, delete-orphan")
+    power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False, cascade="all, delete-orphan")
 
 
 def object_to_model_id(model: Any | None) -> int | None:

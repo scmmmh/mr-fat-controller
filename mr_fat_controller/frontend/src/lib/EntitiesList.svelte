@@ -9,6 +9,7 @@
     mdiShapeCirclePlus,
     mdiSourceBranch,
     mdiSourceBranchPlus,
+    mdiTrashCanOutline,
   } from "@mdi/js";
   import { Dialog, Label, RadioGroup } from "bits-ui";
   import { getContext } from "svelte";
@@ -30,6 +31,26 @@
     queryFn: queryFn<Entity[]>,
     queryKey: ["entities"],
     refetchInterval: 60000,
+  });
+
+  let deleteEntityOpen = false;
+  let deleteEntity: Entity | null = null;
+  const runDeleteEntity = createMutation({
+    mutationFn: async (entity: Entity) => {
+      const response = await window.fetch("/api/entities/" + deleteEntity?.id, {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["entities"] });
+        queryClient.invalidateQueries({ queryKey: ["points"] });
+        queryClient.invalidateQueries({ queryKey: ["power-switches"] });
+        queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
+        deleteEntityOpen = false;
+      }
+    },
   });
 
   let connectPointsOpen = false;
@@ -167,9 +188,54 @@
             >
           {/if}
         {/if}
+        <button
+          on:click={() => {
+            deleteEntity = entity;
+            deleteEntityOpen = true;
+          }}
+          ><Icon path={mdiTrashCanOutline} label="Delete the entity" /></button
+        >
       </li>
     {/each}
   </ul>
+
+  <Dialog.Root bind:open={deleteEntityOpen}>
+    <Dialog.Portal>
+      <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
+      <Dialog.Content
+        class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 h-60 flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+      >
+        <Dialog.Title class="px-4 py-2 border-b-2 border-black font-bold"
+          >Delete {deleteEntity?.name}</Dialog.Title
+        >
+        <form
+          on:submit={(ev) => {
+            ev.preventDefault();
+            $runDeleteEntity.mutate(deleteEntity);
+          }}
+          class="flex-1 flex flex-col overflow-hidden"
+        >
+          <div class="flex-1 px-4 py-2">
+            <p>
+              Delete the {deleteEntity?.name}. This will also delete any power
+              switches, points, block detectors configured for this entity.
+            </p>
+          </div>
+          <div class="px-4 py-2 flex flex-row justify-end gap-4">
+            <Dialog.Close
+              class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+              >Don't delete</Dialog.Close
+            >
+            <button
+              type="submit"
+              class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+              >Delete</button
+            >
+          </div>
+        </form>
+      </Dialog.Content>
+    </Dialog.Portal>
+  </Dialog.Root>
 
   <Dialog.Root
     bind:open={connectPointsOpen}
