@@ -38,22 +38,26 @@
 </script>
 
 {#if $blockDetectors.isSuccess && $blockDetectors.data.length > 0}
-  <h2 class="flex-1 text-xl font-bold mb-2">Block Detectors</h2>
+  <div class="flex flex-col overflow-hidden">
+    <h2 class="text-xl font-bold mb-2">Block Detectors</h2>
 
-  <ul>
-    {#each $blockDetectors.data as block_detector}
-      <li class="flex flex-row space-x-2 items-center">
-        {#if $entityForEntityId[block_detector.entity_id]}
-          {#if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "on"}
-            <Icon path={mdiCircleSlice8} />
-          {:else if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "off"}
-            <Icon path={mdiCircleOutline} />
-          {:else}
-            <Icon path={mdiHelpRhombusOutline} />
+    <ul class="flex-1 overflow-auto space-y-1">
+      {#each $blockDetectors.data as block_detector}
+        <li class="flex flex-row space-x-2 items-center py-1">
+          {#if $entityForEntityId[block_detector.entity_id]}
+            {#if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "on"}
+              <Icon path={mdiCircleSlice8} />
+            {:else if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "off"}
+              <Icon path={mdiCircleOutline} />
+            {:else}
+              <Icon path={mdiHelpRhombusOutline} />
+            {/if}
+            <span class="flex-1"
+              >{$entityForEntityId[block_detector.entity_id].name}</span
+            >
           {/if}
-          <span>{$entityForEntityId[block_detector.entity_id].name}</span>
-        {/if}
-      </li>
-    {/each}
-  </ul>
+        </li>
+      {/each}
+    </ul>
+  </div>
 {/if}

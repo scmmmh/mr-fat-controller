@@ -12,7 +12,7 @@
     viewBox="0 0 24 24"
     aria-label={label}
     aria-hidden={label === null ? "true" : "false"}
-    class="inline-block w-{size} h-{size} {cls}"
+    class="inline-block w-{size} h-{size} fill-current {cls}"
   >
     <path d={path} />
   </svg>

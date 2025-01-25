@@ -33,7 +33,7 @@ type Points = {
 
 type PointsState = {
   model: Points,
-  state: "through" | "diverge" | "unknown",
+  state: "through" | "diverge" | "unknown" | "switching",
 };
 
 type PowerSwitch = {
@@ -43,7 +43,7 @@ type PowerSwitch = {
 
 type PowerSwitchState = {
   model: PowerSwitch,
-  state: "on" | "off" | "unknown",
+  state: "on" | "off" | "unknown" | "switching",
 };
 
 type State = {
