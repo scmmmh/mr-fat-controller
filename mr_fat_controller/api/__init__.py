@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from mr_fat_controller.api.block_detectors import router as block_detectors_router
+from mr_fat_controller.api.devices import router as device_router
 from mr_fat_controller.api.entities import router as entities_router
 from mr_fat_controller.api.points import router as points_router
 from mr_fat_controller.api.power_switches import router as power_switches_router
@@ -20,6 +21,7 @@ from mr_fat_controller.state import state_manager
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
 router.include_router(block_detectors_router)
+router.include_router(device_router)
 router.include_router(entities_router)
 router.include_router(power_switches_router)
 router.include_router(points_router)

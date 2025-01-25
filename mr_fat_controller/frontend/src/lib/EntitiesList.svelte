@@ -44,10 +44,10 @@
         },
       });
       if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
         queryClient.invalidateQueries({ queryKey: ["entities"] });
         queryClient.invalidateQueries({ queryKey: ["points"] });
         queryClient.invalidateQueries({ queryKey: ["power-switches"] });
-        queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
         deleteEntityOpen = false;
       }
     },

@@ -13,7 +13,12 @@ async def get_entities(dbsession=Depends(inject_db_session)) -> list[Entity]:
     query = (
         select(Entity)
         .order_by(Entity.device_class, Entity.name)
-        .options(selectinload(Entity.block_detector), selectinload(Entity.points), selectinload(Entity.power_switch))
+        .options(
+            selectinload(Entity.block_detector),
+            selectinload(Entity.device),
+            selectinload(Entity.points),
+            selectinload(Entity.power_switch),
+        )
     )
     result = await dbsession.execute(query)
     return list(result.scalars())

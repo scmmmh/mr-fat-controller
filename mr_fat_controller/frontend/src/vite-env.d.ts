@@ -1,10 +1,18 @@
 /// <reference types="svelte" />
 /// <reference types="vite/client" />
 
+type Device = {
+  id: int,
+  external_id: string,
+  name: string,
+  attrs: any,
+
+  entities: number[],
+};
+
 type Entity = {
   id: int,
   external_id: string,
-  device_id: Int16Array,
   name: string,
   device_class: string,
   state_topic: string,

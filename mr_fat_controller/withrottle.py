@@ -9,6 +9,7 @@ from typing import Any
 
 from aiomqtt import Client
 
+from mr_fat_controller.__about__ import __version__
 from mr_fat_controller.mqtt import mqtt_client
 from mr_fat_controller.settings import settings
 
@@ -31,6 +32,9 @@ def slugify(text: str) -> str:
 WITHROTTLE_DEVICE = {
     "identifiers": [f"{slugify(settings.withrottle.name)}-withrottle-bridge"],
     "name": settings.withrottle.name,
+    "manufacturer": "MR Fat Controller",
+    "model": "WiThrottle Bridge",
+    "sw_version": __version__,
 }
 logger = logging.getLogger(__name__)
 
