@@ -335,7 +335,7 @@
           >
             <div class="flex-1 px-4 py-2">
               <p>
-                This will connect the <span
+                This will add the <span
                   class="inline-block border border-emerald-700 px-2 rounded"
                   >{connectPowerEntity?.name}</span
                 > as a power switch.
@@ -361,27 +361,35 @@
       <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
         <Dialog.Content
-          class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 h-60 flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+          class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
         >
-          <Dialog.Title class="px-4 py-2 border-b-2 border-black font-bold"
-            >Connect {connectBlockDetectorEntity.name} as a block detector</Dialog.Title
+          <Dialog.Title
+            class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
+            >Add a block detector</Dialog.Title
           >
           <form
             on:submit={(ev) => {
               ev.preventDefault();
               $connectAsBlockDetector.mutate(connectBlockDetectorEntity);
             }}
-            class="flex-1 flex flex-col overflow-hidden"
+            class="flex-1 flex flex-col overflow-hidden gap-4"
           >
-            <div class="flex-1"></div>
+            <div class="flex-1 px-4 py-2">
+              <p>
+                This will add the <span
+                  class="inline-block border border-emerald-700 px-2 rounded"
+                  >{connectBlockDetectorEntity?.name}</span
+                > as a block detector.
+              </p>
+            </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
-                class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+                class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
                 >Don't connect</Dialog.Close
               >
               <button
                 type="submit"
-                class="px-4 py-2 bg-indigo-700 text-white transition-colors hover:bg-indigo-600 focus:bg-indigo-600 rounded"
+                class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
                 >Connect</button
               >
             </div>
