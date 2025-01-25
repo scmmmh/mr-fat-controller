@@ -43,7 +43,7 @@ jobs:
       - name: Start the database backend
         uses: hoverkraft-tech/compose-action@v2.0.1
         with:
-          compose-file: "./tests/docker-compose.yml"
+          compose-file: "./tests/docker-compose.yaml"
 
       - name: Run Tests
         run: |
