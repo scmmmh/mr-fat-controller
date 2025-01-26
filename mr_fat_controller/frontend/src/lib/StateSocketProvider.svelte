@@ -7,13 +7,14 @@
     block_detector: {},
     points: {},
     power_switch: {},
+    signal: {},
   } as State);
   let disconnected = true;
   setContext("state", state);
   let ws: WebSocket | null = null;
 
   function connect() {
-    state.set({ block_detector: {}, points: {}, power_switch: {} });
+    state.set({ block_detector: {}, points: {}, power_switch: {}, signal: {} });
 
     ws = new WebSocket("/api/state");
     ws.addEventListener("message", (ev: MessageEvent) => {
@@ -24,6 +25,7 @@
           block_detector: {},
           points: {},
           power_switch: {},
+          signal: {},
         } as State;
         Object.entries(msg.payload).forEach(([key, obj]) => {
           new_state[obj.type][obj.model.id] = {

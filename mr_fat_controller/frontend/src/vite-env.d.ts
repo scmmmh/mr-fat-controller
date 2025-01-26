@@ -22,6 +22,17 @@ type Entity = {
   block_detector: number | null,
   points: number | null,
   power_switch: number | null,
+  signal: number | null
+};
+
+type BlockDetector = {
+  id: int,
+  entity_id: number,
+};
+
+type BlockDetectorState = {
+  model: BlockDetector,
+  state: "off" | "on" | "unknown"
 };
 
 type Points = {
@@ -46,9 +57,21 @@ type PowerSwitchState = {
   state: "on" | "off" | "unknown" | "switching",
 };
 
+type Signal = {
+  id: int,
+  entity_id: number,
+};
+
+type SignalState = {
+  model: Signal,
+  state: "off" | "danger" | "clear" | "unknown",
+};
+
 type State = {
+  block_detector: { [key: number]: BlockDetectorState },
   points: { [key: number]: PointsState },
-  power_switch: { [key:number]: PowerSwitchState}
+  power_switch: { [key: number]: PowerSwitchState },
+  signal: { [key: number]: SignalState },
 };
 
 type PointsStatePayload = {

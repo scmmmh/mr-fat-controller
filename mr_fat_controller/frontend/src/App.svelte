@@ -9,6 +9,7 @@
   import Icon from "./lib/Icon.svelte";
   import PointsList from "./lib/PointsList.svelte";
   import PowerSwitchList from "./lib/PowerSwitchList.svelte";
+  import SignalList from "./lib/SignalList.svelte";
   import StateSocketProvider from "./lib/StateSocketProvider.svelte";
 
   const client = new QueryClient();
@@ -75,6 +76,7 @@
               >
                 <PointsList />
                 <BlockDetectorList />
+                <SignalList />
               </div>
             </Tabs.Content>
           </Tabs.Root>

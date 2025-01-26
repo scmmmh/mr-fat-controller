@@ -5,6 +5,7 @@ import json
 import logging
 import ssl
 from asyncio import sleep
+from typing import cast
 
 from aiomqtt import Client
 from pydantic import BaseModel, conlist
@@ -21,6 +22,8 @@ from mr_fat_controller.models import (
     PointsModel,
     PowerSwitch,
     PowerSwitchModel,
+    Signal,
+    SignalModel,
     db_session,
 )
 from mr_fat_controller.settings import settings
@@ -63,9 +66,11 @@ async def mqtt_listener() -> None:
                     try:
                         topic = tuple(message.topic.value.split("/"))
                         if topic[-1] == "config":
-                            await register_new_entity(json.loads(message.payload))
+                            await register_new_entity(json.loads(cast(str, message.payload)))
                         elif topic[-1] == "state":
-                            await state_manager.update_state(message.topic.value, json.loads(message.payload))
+                            await state_manager.update_state(
+                                message.topic.value, json.loads(cast(str, message.payload))
+                            )
                     except Exception as e:
                         logger.error(e)
         except asyncio.CancelledError:
@@ -117,7 +122,7 @@ async def register_new_entity(data: dict) -> None:
                 )
                 dbsession.add(device)
             else:
-                device.name = entity.device.name
+                device.name = entity.device.name  # type: ignore
                 device.attrs = data["device"]
             query = select(Entity).filter(Entity.external_id == entity.unique_id)
             result = await dbsession.execute(query)
@@ -136,10 +141,10 @@ async def register_new_entity(data: dict) -> None:
                 dbsession.add(db_entity)
             else:
                 db_entity.device = device
-                db_entity.name = entity.name
-                db_entity.state_topic = entity.state_topic
-                db_entity.command_topic = entity.command_topic
-                db_entity.attrs = data
+                db_entity.name = entity.name  # type: ignore
+                db_entity.state_topic = entity.state_topic  # type: ignore
+                db_entity.command_topic = entity.command_topic  # type: ignore
+                db_entity.attrs = data  # type: ignore
             await dbsession.commit()
             await recalculate_state(dbsession)
     except Exception as e:
@@ -177,6 +182,17 @@ async def recalculate_state(dbsession: AsyncSession) -> None:
             {
                 "type": "power_switch",
                 "model": PowerSwitchModel.model_validate(power_switch).model_dump(),
+                "state": "unknown",
+            },
+        )
+    query = select(Signal).options(selectinload(Signal.entity))
+    result = await dbsession.execute(query)
+    for signal in result.scalars():
+        await state_manager.add_state(
+            signal.entity.state_topic,
+            {
+                "type": "signal",
+                "model": SignalModel.model_validate(signal).model_dump(),
                 "state": "unknown",
             },
         )

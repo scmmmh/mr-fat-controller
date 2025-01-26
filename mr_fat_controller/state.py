@@ -3,6 +3,8 @@ from collections.abc import Awaitable, Callable
 
 logger = logging.getLogger(__name__)
 
+SIGNAL_COLOUR_THRESHOLD = 128
+
 
 class StateManager:
     def __init__(self) -> None:
@@ -30,9 +32,19 @@ class StateManager:
             elif obj["type"] == "block_detector":
                 if data["state"] in ("ON", "OFF"):
                     obj["state"] = data["state"].lower()
+            elif obj["type"] == "signal":
+                if data["state"] == "OFF":
+                    obj["state"] = "off"
+                elif "color" in data:
+                    if "red" in data["color"] and data["color"]["red"] > SIGNAL_COLOUR_THRESHOLD:
+                        obj["state"] = "danger"
+                    elif "green" in data["color"] and data["color"]["green"] > SIGNAL_COLOUR_THRESHOLD:
+                        obj["state"] = "clear"
             else:
                 logger.debug(obj)
             await self._notify()
+        else:
+            logger.error(f"Unknown topic {topic}")
 
     async def add_listener(self, listener: Callable[[dict], Awaitable]) -> None:
         self.listeners.append(listener)
