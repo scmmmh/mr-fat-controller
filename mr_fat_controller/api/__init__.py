@@ -51,8 +51,11 @@ async def status(dbsession: AsyncSession = Depends(inject_db_session)) -> dict:
 async def state_socket(websocket: WebSocket) -> None:
     await websocket.accept()
 
-    async def state_updates(state: dict) -> None:
-        await websocket.send_json({"type": "state", "payload": state})
+    async def state_updates(state: dict, change_topic: str | None) -> None:
+        if change_topic is not None and change_topic in state:
+            await websocket.send_json({"type": "state", "payload": {change_topic: state[change_topic]}})
+        else:
+            await websocket.send_json({"type": "state", "payload": state})
 
     await state_manager.add_listener(state_updates)
 

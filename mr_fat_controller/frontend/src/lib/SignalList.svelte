@@ -44,9 +44,9 @@
             {#if $state.signal[signal.id] && $state.signal[signal.id].state === "off"}
               <Icon path={mdiCircleOutline} />
             {:else if $state.signal[signal.id] && $state.signal[signal.id].state === "danger"}
-              <Icon path={mdiCircle} />
+              <Icon path={mdiCircle} class="text-red-500" />
             {:else if $state.signal[signal.id] && $state.signal[signal.id].state === "clear"}
-              <Icon path={mdiCircle} />
+              <Icon path={mdiCircle} class="text-green-500" />
             {:else}
               <Icon path={mdiHelpRhombusOutline} />
             {/if}

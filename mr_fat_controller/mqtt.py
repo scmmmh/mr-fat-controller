@@ -11,7 +11,7 @@ from aiomqtt import Client
 from pydantic import BaseModel, conlist
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from mr_fat_controller.models import (
     BlockDetector,
@@ -163,7 +163,12 @@ async def recalculate_state(dbsession: AsyncSession) -> None:
                 "state": "unknown",
             },
         )
-    query = select(Points).options(selectinload(Points.entity))
+    query = select(Points).options(
+        joinedload(Points.entity),
+        joinedload(Points.diverge_signal),
+        joinedload(Points.root_signal),
+        joinedload(Points.through_signal),
+    )
     result = await dbsession.execute(query)
     for points in result.scalars():
         await state_manager.add_state(

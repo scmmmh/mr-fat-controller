@@ -1,10 +1,13 @@
 """Models for a single points."""
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer, Unicode
 from sqlalchemy.orm import relationship
 
 from mr_fat_controller.models.meta import Base
+from mr_fat_controller.models.util import object_to_model_id
 
 
 class Points(Base):
@@ -16,8 +19,14 @@ class Points(Base):
     entity_id = Column(Integer, ForeignKey("entities.id"))
     through_state = Column(Unicode(255))
     diverge_state = Column(Unicode(255))
+    through_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
+    diverge_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
+    root_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
 
     entity = relationship("Entity", back_populates="points")
+    through_signal = relationship("Signal", foreign_keys="Points.through_signal_id")
+    diverge_signal = relationship("Signal", foreign_keys="Points.diverge_signal_id")
+    root_signal = relationship("Signal", foreign_keys="Points.root_signal_id")
 
 
 class PointsModel(BaseModel):
@@ -27,5 +36,8 @@ class PointsModel(BaseModel):
     entity_id: int
     through_state: str
     diverge_state: str
+    diverge_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    root_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    through_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)
