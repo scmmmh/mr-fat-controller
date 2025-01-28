@@ -9,8 +9,8 @@
   import { derived, type Writable } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import Icon from "./Icon.svelte";
-  import { queryFn } from "../util";
+  import Icon from "../Icon.svelte";
+  import { queryFn } from "../../util";
 
   const state = getContext("state") as Writable<State>;
   const sendStateMessage = getContext(

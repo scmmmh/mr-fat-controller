@@ -3,13 +3,13 @@
   import { mdiDevices, mdiFence, mdiRailroadLight, mdiTrain } from "@mdi/js";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
 
-  import BlockDetectorList from "./lib/BlockDetectorList.svelte";
-  import DevicesList from "./lib/DevicesList.svelte";
-  import EntitiesList from "./lib/EntitiesList.svelte";
+  import BlockDetectorList from "./lib/lists/BlockDetectorList.svelte";
+  import DevicesList from "./lib/lists/DevicesList.svelte";
+  import EntitiesList from "./lib/lists/EntitiesList.svelte";
   import Icon from "./lib/Icon.svelte";
-  import PointsList from "./lib/PointsList.svelte";
-  import PowerSwitchList from "./lib/PowerSwitchList.svelte";
-  import SignalList from "./lib/SignalList.svelte";
+  import PointsList from "./lib/lists/PointsList.svelte";
+  import PowerSwitchList from "./lib/lists/PowerSwitchList.svelte";
+  import SignalList from "./lib/lists/SignalList.svelte";
   import StateSocketProvider from "./lib/StateSocketProvider.svelte";
 
   const client = new QueryClient();

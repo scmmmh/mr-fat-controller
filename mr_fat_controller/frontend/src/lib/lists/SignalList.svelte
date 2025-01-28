@@ -1,15 +1,11 @@
 <script lang="ts">
-  import {
-    mdiCircleOutline,
-    mdiCircleSlice8,
-    mdiHelpRhombusOutline,
-  } from "@mdi/js";
+  import { mdiCircle, mdiCircleOutline, mdiHelpRhombusOutline } from "@mdi/js";
   import { getContext } from "svelte";
   import { derived, type Writable } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import Icon from "./Icon.svelte";
-  import { queryFn } from "../util";
+  import Icon from "../Icon.svelte";
+  import { queryFn } from "../../util";
 
   const state = getContext("state") as Writable<State>;
   const entities = createQuery({
@@ -18,9 +14,9 @@
     refetchInterval: 60000,
   });
 
-  const blockDetectors = createQuery({
-    queryFn: queryFn<Points[]>,
-    queryKey: ["block-detectors"],
+  const signals = createQuery({
+    queryFn: queryFn<Signal[]>,
+    queryKey: ["signals"],
     refetchInterval: 60000,
   });
 
@@ -37,23 +33,25 @@
   });
 </script>
 
-{#if $blockDetectors.isSuccess && $blockDetectors.data.length > 0}
+{#if $signals.isSuccess && $signals.data.length > 0}
   <div class="flex flex-col overflow-hidden">
-    <h2 class="text-xl font-bold mb-2">Block Detectors</h2>
+    <h2 class="text-xl font-bold mb-2">Signals</h2>
 
     <ul class="flex-1 overflow-auto space-y-1">
-      {#each $blockDetectors.data as block_detector}
+      {#each $signals.data as signal}
         <li class="flex flex-row space-x-2 items-center py-1">
-          {#if $entityForEntityId[block_detector.entity_id]}
-            {#if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "on"}
-              <Icon path={mdiCircleSlice8} />
-            {:else if $state.block_detector[block_detector.id] && $state.block_detector[block_detector.id].state === "off"}
+          {#if $entityForEntityId[signal.entity_id]}
+            {#if $state.signal[signal.id] && $state.signal[signal.id].state === "off"}
               <Icon path={mdiCircleOutline} />
+            {:else if $state.signal[signal.id] && $state.signal[signal.id].state === "danger"}
+              <Icon path={mdiCircle} class="text-red-500" />
+            {:else if $state.signal[signal.id] && $state.signal[signal.id].state === "clear"}
+              <Icon path={mdiCircle} class="text-green-500" />
             {:else}
               <Icon path={mdiHelpRhombusOutline} />
             {/if}
             <span class="flex-1"
-              >{$entityForEntityId[block_detector.entity_id].name}</span
+              >{$entityForEntityId[signal.entity_id].name}</span
             >
           {/if}
         </li>

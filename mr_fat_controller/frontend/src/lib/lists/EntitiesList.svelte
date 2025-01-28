@@ -21,8 +21,8 @@
     useQueryClient,
   } from "@tanstack/svelte-query";
 
-  import Icon from "./Icon.svelte";
-  import { queryFn } from "../util";
+  import Icon from "../Icon.svelte";
+  import { queryFn } from "../../util";
 
   const queryClient = useQueryClient();
   const sendStateMessage = getContext(
@@ -168,6 +168,8 @@
             <Icon path={mdiSourceBranch} />
           {:else if entity.power_switch !== null}
             <Icon path={mdiPowerPlug} />
+          {:else if entity.signal !== null}
+            <Icon path={mdiRailroadLight} />
           {:else if entity.device_class === "switch"}
             <Icon path={mdiElectricSwitch} />
           {:else if entity.device_class === "decoder"}
