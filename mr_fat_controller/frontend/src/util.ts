@@ -1,3 +1,7 @@
+import { getContext } from "svelte";
+import { type Readable } from "svelte/store";
+import type { CreateQueryResult } from "@tanstack/svelte-query";
+
 /**
  * Default query function
  *
@@ -13,4 +17,16 @@ export async function queryFn<ResultType>({ queryKey }: { queryKey: string[] }):
       cause: await response.json(),
     });
   }
+}
+
+
+export function useSendMessage() {
+  return getContext("sendStateMessage") as SendStateMessageFunction;
+}
+
+export function useEntities() {
+  return getContext("entities") as CreateQueryResult<Entity[], Error>;
+}
+export function useEntitiesDict() {
+  return getContext("entitiesDict") as Readable<{[key: number]: Entity}>;
 }

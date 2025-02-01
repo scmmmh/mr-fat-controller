@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 type Device = {
-  id: int,
+  id: number,
   external_id: string,
   name: string,
   attrs: any,
@@ -11,7 +11,7 @@ type Device = {
 };
 
 type Entity = {
-  id: int,
+  id: number,
   external_id: string,
   name: string,
   device_class: string,
@@ -26,7 +26,7 @@ type Entity = {
 };
 
 type BlockDetector = {
-  id: int,
+  id: number,
   entity_id: number,
 };
 
@@ -36,10 +36,13 @@ type BlockDetectorState = {
 };
 
 type Points = {
-  id: int,
+  id: number,
   entity_id: number,
   through_state: string,
   diverge_state: string,
+  diverge_signal: number | null,
+  root_signal: number | null,
+  through_signal: number | null,
 };
 
 type PointsState = {
@@ -48,7 +51,7 @@ type PointsState = {
 };
 
 type PowerSwitch = {
-  id: int,
+  id: number,
   entity_id: number,
 };
 
@@ -58,7 +61,7 @@ type PowerSwitchState = {
 };
 
 type Signal = {
-  id: int,
+  id: number,
   entity_id: number,
 };
 

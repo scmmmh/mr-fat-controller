@@ -1,6 +1,7 @@
 """API endpoints for handling points."""
 
 from fastapi import APIRouter, Depends
+from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
@@ -35,7 +36,7 @@ async def create_points(data: CreatePointsModel, dbsession=Depends(inject_db_ses
 
 
 @router.get("", response_model=list[PointsModel])
-async def get_points(dbsession=Depends(inject_db_session)) -> list[Points]:
+async def get_all_points(dbsession=Depends(inject_db_session)) -> list[Points]:
     """Return all points."""
     query = (
         select(Points)
@@ -44,3 +45,53 @@ async def get_points(dbsession=Depends(inject_db_session)) -> list[Points]:
     )
     result = await dbsession.execute(query)
     return list(result.scalars())
+
+
+@router.get("/{pid}", response_model=PointsModel)
+async def get_points(pid: int, dbsession=Depends(inject_db_session)) -> Points:
+    """Return a single points."""
+    query = (
+        select(Points)
+        .filter(Points.id == pid)
+        .options(joinedload(Points.diverge_signal), joinedload(Points.root_signal), joinedload(Points.through_signal))
+    )
+    result = await dbsession.execute(query)
+    points = result.scalar()
+    if points is not None:
+        return points
+    else:
+        raise HTTPException(404)
+
+
+class PatchPointsModel(BaseModel):
+    """Model for validating an updated Points."""
+
+    diverge_state: str
+    through_state: str
+    diverge_signal: int | None
+    root_signal: int | None
+    through_signal: int | None
+
+
+@router.put("/{pid}", response_model=PointsModel)
+async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_db_session)) -> Points:
+    """Update a single points."""
+    query = (
+        select(Points)
+        .filter(Points.id == pid)
+        .options(joinedload(Points.diverge_signal), joinedload(Points.root_signal), joinedload(Points.through_signal))
+    )
+    result = await dbsession.execute(query)
+    points = result.scalar()
+    if points is not None:
+        points.diverge_state = data.diverge_state
+        points.through_state = data.through_state
+        points.diverge_signal_id = data.diverge_signal
+        points.root_signal_id = data.root_signal
+        points.through_signal_id = data.through_signal
+        await dbsession.commit()
+        await recalculate_state(dbsession)
+        await full_state_refresh()
+        return points
+    else:
+        raise HTTPException(404)

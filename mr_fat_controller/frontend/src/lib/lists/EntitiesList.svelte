@@ -9,31 +9,19 @@
     mdiRailroadLight,
     mdiReload,
     mdiShapeCirclePlus,
-    mdiSourceBranch,
     mdiSourceBranchPlus,
     mdiTrashCanOutline,
   } from "@mdi/js";
   import { Dialog, Label, RadioGroup } from "bits-ui";
-  import { getContext } from "svelte";
-  import {
-    createQuery,
-    createMutation,
-    useQueryClient,
-  } from "@tanstack/svelte-query";
+  import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { queryFn } from "../../util";
+  import PointsEditor from "../editors/PointsEditor.svelte";
+  import { useEntities, useSendMessage } from "../../util";
 
   const queryClient = useQueryClient();
-  const sendStateMessage = getContext(
-    "sendStateMessage",
-  ) as SendStateMessageFunction;
-
-  const entities = createQuery({
-    queryFn: queryFn<Entity[]>,
-    queryKey: ["entities"],
-    refetchInterval: 60000,
-  });
+  const sendStateMessage = useSendMessage();
+  const entities = useEntities();
 
   let deleteEntityOpen = false;
   let deleteEntity: Entity | null = null;
@@ -165,84 +153,86 @@
       {#each $entities.data as entity}
         <li class="flex flex-row space-x-2 items-center">
           {#if entity.points !== null}
-            <Icon path={mdiSourceBranch} />
-          {:else if entity.power_switch !== null}
-            <Icon path={mdiPowerPlug} />
-          {:else if entity.signal !== null}
-            <Icon path={mdiRailroadLight} />
-          {:else if entity.device_class === "switch"}
-            <Icon path={mdiElectricSwitch} />
-          {:else if entity.device_class === "decoder"}
-            <Icon path={mdiChip} />
-          {:else if entity.device_class === "binary_sensor"}
-            <Icon path={mdiLeak} />
-          {:else if entity.device_class === "light"}
-            <Icon path={mdiLightbulbOutline} />
+            <PointsEditor {entity} />
           {:else}
-            <Icon path={mdiHelpRhombusOutline} />
-          {/if}
-          <span class="flex-1">{entity.name}</span>
-          {#if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null}
-            {#if entity.device_class === "switch"}
-              <button
-                on:click={() => {
-                  connectPointsEntity = entity;
-                  connectPointsOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiSourceBranchPlus}
-                  label="Add new points"
-                /></button
-              >
-              <button
-                on:click={() => {
-                  connectPowerEntity = entity;
-                  connectPowerOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiPowerPlug}
-                  label="Add a new power control"
-                /></button
-              >
+            {#if entity.power_switch !== null}
+              <Icon path={mdiPowerPlug} />
+            {:else if entity.signal !== null}
+              <Icon path={mdiRailroadLight} />
+            {:else if entity.device_class === "switch"}
+              <Icon path={mdiElectricSwitch} />
+            {:else if entity.device_class === "decoder"}
+              <Icon path={mdiChip} />
             {:else if entity.device_class === "binary_sensor"}
-              <button
-                on:click={() => {
-                  connectBlockDetectorEntity = entity;
-                  connectBlockDetectorOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiShapeCirclePlus}
-                  label="Add a new block detector"
-                /></button
-              >
+              <Icon path={mdiLeak} />
             {:else if entity.device_class === "light"}
-              <button
-                on:click={() => {
-                  connectSignalEntity = entity;
-                  connectSignalOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiRailroadLight}
-                  label="Add a new signal"
-                /></button
-              >
+              <Icon path={mdiLightbulbOutline} />
+            {:else}
+              <Icon path={mdiHelpRhombusOutline} />
             {/if}
+            <span class="flex-1">{entity.name}</span>
+            {#if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null}
+              {#if entity.device_class === "switch"}
+                <button
+                  on:click={() => {
+                    connectPointsEntity = entity;
+                    connectPointsOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiSourceBranchPlus}
+                    label="Add new points"
+                  /></button
+                >
+                <button
+                  on:click={() => {
+                    connectPowerEntity = entity;
+                    connectPowerOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiPowerPlug}
+                    label="Add a new power control"
+                  /></button
+                >
+              {:else if entity.device_class === "binary_sensor"}
+                <button
+                  on:click={() => {
+                    connectBlockDetectorEntity = entity;
+                    connectBlockDetectorOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiShapeCirclePlus}
+                    label="Add a new block detector"
+                  /></button
+                >
+              {:else if entity.device_class === "light"}
+                <button
+                  on:click={() => {
+                    connectSignalEntity = entity;
+                    connectSignalOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiRailroadLight}
+                    label="Add a new signal"
+                  /></button
+                >
+              {/if}
+            {/if}
+            <button
+              on:click={() => {
+                deleteEntity = entity;
+                deleteEntityOpen = true;
+              }}
+              class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+              ><Icon
+                path={mdiTrashCanOutline}
+                label="Delete the entity"
+              /></button
+            >
           {/if}
-          <button
-            on:click={() => {
-              deleteEntity = entity;
-              deleteEntityOpen = true;
-            }}
-            class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-            ><Icon
-              path={mdiTrashCanOutline}
-              label="Delete the entity"
-            /></button
-          >
         </li>
       {/each}
     </ul>
