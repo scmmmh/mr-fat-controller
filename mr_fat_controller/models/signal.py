@@ -1,4 +1,4 @@
-"""Models for a single entity."""
+"""Models for a single entity."""  # noqa: A005
 
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer
