@@ -24,7 +24,7 @@ async def create_points(data: CreateBlockDetectorModel, dbsession=Depends(inject
     )
     dbsession.add(block_detector)
     await dbsession.commit()
-    await recalculate_state(dbsession)
+    await recalculate_state()
     await full_state_refresh()
     return block_detector
 

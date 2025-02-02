@@ -11,10 +11,17 @@ class StateManager:
         self.state = {}
         self.listeners = []
 
-    async def add_state(self, topic: str, state: dict) -> None:
+    async def add_state(self, topic: str, state: dict, notify: bool = True) -> None:  # noqa: FBT001, FBT002
         if topic not in self.state:
             self.state[topic] = state
-            await self._notify(None)
+            if notify:
+                await self._notify(topic)
+
+    async def update_model(self, topic: str, model: dict, notify: bool = True) -> None:  # noqa: FBT001, FBT002
+        if topic in self.state:
+            self.state[topic]["model"] = model
+            if notify:
+                await self._notify(topic)
 
     async def update_state(self, topic: str, data: dict) -> None:
         if topic in self.state:
@@ -56,6 +63,9 @@ class StateManager:
     async def _notify(self, change_topic: str | None) -> None:
         for listener in self.listeners:
             await listener(self.state, change_topic)
+
+    def __contains__(self, topic: str) -> bool:
+        return topic in self.state
 
 
 state_manager = StateManager()

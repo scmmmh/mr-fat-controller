@@ -24,7 +24,7 @@ async def create_signal(data: CreateSignalModel, dbsession=Depends(inject_db_ses
     )
     dbsession.add(signal)
     await dbsession.commit()
-    await recalculate_state(dbsession)
+    await recalculate_state()
     await full_state_refresh()
     return signal
 

@@ -30,7 +30,7 @@ async def create_points(data: CreatePointsModel, dbsession=Depends(inject_db_ses
     )
     dbsession.add(points)
     await dbsession.commit()
-    await recalculate_state(dbsession)
+    await recalculate_state()
     await full_state_refresh()
     return points
 
@@ -90,8 +90,8 @@ async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_
         points.root_signal_id = data.root_signal
         points.through_signal_id = data.through_signal
         await dbsession.commit()
-        await recalculate_state(dbsession)
-        await full_state_refresh()
+        await dbsession.refresh(points)
+        await recalculate_state()
         return points
     else:
         raise HTTPException(404)
