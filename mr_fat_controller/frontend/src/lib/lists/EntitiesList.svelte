@@ -4,34 +4,24 @@
     mdiElectricSwitch,
     mdiHelpRhombusOutline,
     mdiLeak,
+    mdiLightbulbOutline,
     mdiPowerPlug,
+    mdiRailroadLight,
     mdiReload,
     mdiShapeCirclePlus,
-    mdiSourceBranch,
     mdiSourceBranchPlus,
     mdiTrashCanOutline,
   } from "@mdi/js";
   import { Dialog, Label, RadioGroup } from "bits-ui";
-  import { getContext } from "svelte";
-  import {
-    createQuery,
-    createMutation,
-    useQueryClient,
-  } from "@tanstack/svelte-query";
+  import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
-  import Icon from "./Icon.svelte";
-  import { queryFn } from "../util";
+  import Icon from "../Icon.svelte";
+  import PointsEditor from "../editors/PointsEditor.svelte";
+  import { useEntities, useSendMessage } from "../../util";
 
   const queryClient = useQueryClient();
-  const sendStateMessage = getContext(
-    "sendStateMessage",
-  ) as SendStateMessageFunction;
-
-  const entities = createQuery({
-    queryFn: queryFn<Entity[]>,
-    queryKey: ["entities"],
-    refetchInterval: 60000,
-  });
+  const sendStateMessage = useSendMessage();
+  const entities = useEntities();
 
   let deleteEntityOpen = false;
   let deleteEntity: Entity | null = null;
@@ -121,6 +111,28 @@
       }
     },
   });
+
+  let connectSignalOpen = false;
+  let connectSignalEntity: Entity | null = null;
+  const connectAsSignal = createMutation({
+    mutationFn: async (entity: Entity) => {
+      const response = await window.fetch("/api/signals", {
+        method: "POST",
+        body: JSON.stringify({
+          entity_id: entity.id,
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["entities"] });
+        queryClient.invalidateQueries({ queryKey: ["signals"] });
+        connectSignalOpen = false;
+      }
+    },
+  });
 </script>
 
 <div class="flex flex-col overflow-hidden">
@@ -141,68 +153,86 @@
       {#each $entities.data as entity}
         <li class="flex flex-row space-x-2 items-center">
           {#if entity.points !== null}
-            <Icon path={mdiSourceBranch} />
-          {:else if entity.power_switch !== null}
-            <Icon path={mdiPowerPlug} />
-          {:else if entity.device_class === "switch"}
-            <Icon path={mdiElectricSwitch} />
-          {:else if entity.device_class === "decoder"}
-            <Icon path={mdiChip} />
-          {:else if entity.device_class === "binary_sensor"}
-            <Icon path={mdiLeak} />
+            <PointsEditor {entity} />
           {:else}
-            <Icon path={mdiHelpRhombusOutline} />
-          {/if}
-          <span class="flex-1">{entity.name}</span>
-          {#if entity.points === null && entity.power_switch === null && entity.block_detector === null}
-            {#if entity.device_class === "switch"}
-              <button
-                on:click={() => {
-                  connectPointsEntity = entity;
-                  connectPointsOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiSourceBranchPlus}
-                  label="Add new points"
-                /></button
-              >
-              <button
-                on:click={() => {
-                  connectPowerEntity = entity;
-                  connectPowerOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiPowerPlug}
-                  label="Add new power control"
-                /></button
-              >
+            {#if entity.power_switch !== null}
+              <Icon path={mdiPowerPlug} />
+            {:else if entity.signal !== null}
+              <Icon path={mdiRailroadLight} />
+            {:else if entity.device_class === "switch"}
+              <Icon path={mdiElectricSwitch} />
+            {:else if entity.device_class === "decoder"}
+              <Icon path={mdiChip} />
             {:else if entity.device_class === "binary_sensor"}
-              <button
-                on:click={() => {
-                  connectBlockDetectorEntity = entity;
-                  connectBlockDetectorOpen = true;
-                }}
-                class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-                ><Icon
-                  path={mdiShapeCirclePlus}
-                  label="Add new block detector"
-                /></button
-              >
+              <Icon path={mdiLeak} />
+            {:else if entity.device_class === "light"}
+              <Icon path={mdiLightbulbOutline} />
+            {:else}
+              <Icon path={mdiHelpRhombusOutline} />
             {/if}
+            <span class="flex-1">{entity.name}</span>
+            {#if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null}
+              {#if entity.device_class === "switch"}
+                <button
+                  on:click={() => {
+                    connectPointsEntity = entity;
+                    connectPointsOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiSourceBranchPlus}
+                    label="Add new points"
+                  /></button
+                >
+                <button
+                  on:click={() => {
+                    connectPowerEntity = entity;
+                    connectPowerOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiPowerPlug}
+                    label="Add a new power control"
+                  /></button
+                >
+              {:else if entity.device_class === "binary_sensor"}
+                <button
+                  on:click={() => {
+                    connectBlockDetectorEntity = entity;
+                    connectBlockDetectorOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiShapeCirclePlus}
+                    label="Add a new block detector"
+                  /></button
+                >
+              {:else if entity.device_class === "light"}
+                <button
+                  on:click={() => {
+                    connectSignalEntity = entity;
+                    connectSignalOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon
+                    path={mdiRailroadLight}
+                    label="Add a new signal"
+                  /></button
+                >
+              {/if}
+            {/if}
+            <button
+              on:click={() => {
+                deleteEntity = entity;
+                deleteEntityOpen = true;
+              }}
+              class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+              ><Icon
+                path={mdiTrashCanOutline}
+                label="Delete the entity"
+              /></button
+            >
           {/if}
-          <button
-            on:click={() => {
-              deleteEntity = entity;
-              deleteEntityOpen = true;
-            }}
-            class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-            ><Icon
-              path={mdiTrashCanOutline}
-              label="Delete the entity"
-            /></button
-          >
         </li>
       {/each}
     </ul>
@@ -230,7 +260,7 @@
                   class="inline-block border border-emerald-700 px-2 rounded"
                   >{deleteEntity?.name}</span
                 >. This will also delete any power switches, points, block
-                detectors configured for this entity.
+                detectors, or signals configured for this entity.
               </p>
             </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
@@ -303,12 +333,12 @@
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Don't connect</Dialog.Close
+                >Don't add</Dialog.Close
               >
               <button
                 type="submit"
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Connect</button
+                >Add</button
               >
             </div>
           </form>
@@ -344,12 +374,12 @@
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Don't connect</Dialog.Close
+                >Don't add</Dialog.Close
               >
               <button
                 type="submit"
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Connect</button
+                >Add</button
               >
             </div>
           </form>
@@ -385,12 +415,53 @@
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Don't connect</Dialog.Close
+                >Don't add</Dialog.Close
               >
               <button
                 type="submit"
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
-                >Connect</button
+                >Add</button
+              >
+            </div>
+          </form>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+
+    <Dialog.Root bind:open={connectSignalOpen}>
+      <Dialog.Portal>
+        <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
+        <Dialog.Content
+          class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+        >
+          <Dialog.Title
+            class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
+            >Add a signal</Dialog.Title
+          >
+          <form
+            on:submit={(ev) => {
+              ev.preventDefault();
+              $connectAsSignal.mutate(connectSignalEntity);
+            }}
+            class="flex-1 flex flex-col overflow-hidden gap-4"
+          >
+            <div class="flex-1 px-4 py-2">
+              <p>
+                This will add the <span
+                  class="inline-block border border-emerald-700 px-2 rounded"
+                  >{connectSignalEntity?.name}</span
+                > as a signal.
+              </p>
+            </div>
+            <div class="px-4 py-2 flex flex-row justify-end gap-4">
+              <Dialog.Close
+                class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
+                >Don't add</Dialog.Close
+              >
+              <button
+                type="submit"
+                class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
+                >Add</button
               >
             </div>
           </form>

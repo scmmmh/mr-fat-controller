@@ -12,8 +12,8 @@
     useQueryClient,
   } from "@tanstack/svelte-query";
 
-  import Icon from "./Icon.svelte";
-  import { queryFn } from "../util";
+  import Icon from "../Icon.svelte";
+  import { queryFn } from "../../util";
 
   const queryClient = useQueryClient();
 

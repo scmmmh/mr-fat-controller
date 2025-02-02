@@ -24,7 +24,7 @@ async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_d
     )
     dbsession.add(power_switch)
     await dbsession.commit()
-    await recalculate_state(dbsession)
+    await recalculate_state()
     await full_state_refresh()
     return power_switch
 

@@ -9,13 +9,14 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from mr_fat_controller import api, mqtt
+from mr_fat_controller import api, automation, mqtt
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:  # noqa: ARG001
     """Set up all lifespan activities."""
     mqtt_listener_task = asyncio.create_task(mqtt.mqtt_listener())
+    await automation.setup_automations()
     yield
     mqtt_listener_task.cancel()
 

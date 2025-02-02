@@ -41,7 +41,7 @@ Source = "https://github.com/unknown/mr-fat-controller"
 path = "mr_fat_controller/__about__.py"
 
 [tool.hatch.envs.default]
-dependencies = ["coverage[toml]>=6.5", "pytest", "ruff>=0.5.0", "httpx"]
+dependencies = ["coverage[toml]>=6.5", "pytest", "ruff==0.5.0", "httpx"]
 
 [tool.hatch.envs.default.scripts]
 server = "cd dev && uvicorn --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app {args}"

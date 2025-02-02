@@ -2,7 +2,7 @@
 /// <reference types="vite/client" />
 
 type Device = {
-  id: int,
+  id: number,
   external_id: string,
   name: string,
   attrs: any,
@@ -11,7 +11,7 @@ type Device = {
 };
 
 type Entity = {
-  id: int,
+  id: number,
   external_id: string,
   name: string,
   device_class: string,
@@ -22,13 +22,27 @@ type Entity = {
   block_detector: number | null,
   points: number | null,
   power_switch: number | null,
+  signal: number | null
+};
+
+type BlockDetector = {
+  id: number,
+  entity_id: number,
+};
+
+type BlockDetectorState = {
+  model: BlockDetector,
+  state: "off" | "on" | "unknown"
 };
 
 type Points = {
-  id: int,
+  id: number,
   entity_id: number,
   through_state: string,
   diverge_state: string,
+  diverge_signal: number | null,
+  root_signal: number | null,
+  through_signal: number | null,
 };
 
 type PointsState = {
@@ -37,7 +51,7 @@ type PointsState = {
 };
 
 type PowerSwitch = {
-  id: int,
+  id: number,
   entity_id: number,
 };
 
@@ -46,9 +60,21 @@ type PowerSwitchState = {
   state: "on" | "off" | "unknown" | "switching",
 };
 
+type Signal = {
+  id: number,
+  entity_id: number,
+};
+
+type SignalState = {
+  model: Signal,
+  state: "off" | "danger" | "clear" | "unknown",
+};
+
 type State = {
+  block_detector: { [key: number]: BlockDetectorState },
   points: { [key: number]: PointsState },
-  power_switch: { [key:number]: PowerSwitchState}
+  power_switch: { [key: number]: PowerSwitchState },
+  signal: { [key: number]: SignalState },
 };
 
 type PointsStatePayload = {
