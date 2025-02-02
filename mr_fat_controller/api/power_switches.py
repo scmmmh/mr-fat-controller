@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """API endpoints for power switches."""
 
 from fastapi import APIRouter, Depends
@@ -18,7 +21,7 @@ class CreatePowerSwitchModel(BaseModel):
 
 @router.post("", response_model=PowerSwitchModel)
 async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_db_session)) -> PowerSwitch:
-    """Create new points."""
+    """Create a new power switch."""
     power_switch = PowerSwitch(
         entity_id=data.entity_id,
     )
@@ -30,7 +33,8 @@ async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_d
 
 
 @router.get("", response_model=list[PowerSwitchModel])
-async def get_entities(dbsession=Depends(inject_db_session)) -> list[PowerSwitch]:
+async def get_power_switches(dbsession=Depends(inject_db_session)) -> list[PowerSwitch]:
+    """GET all power switches."""
     query = select(PowerSwitch).order_by(PowerSwitch.id)
     result = await dbsession.execute(query)
     return list(result.scalars())

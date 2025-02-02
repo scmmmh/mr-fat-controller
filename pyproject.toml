@@ -64,6 +64,7 @@ lint.select = [
   "ARG",
   "B",
   "C",
+  "D",
   "DTZ",
   "E",
   "EM",
@@ -89,6 +90,9 @@ lint.select = [
 lint.ignore = [
   # Allow non-abstract empty methods in abstract base classes
   "B027",
+  # Ignore documentation errors
+  "D203",
+  "D213",
   # Allow boolean positional values in function calls, like `dict.get(... True)`
   "FBT003",
   # Ignore single-line string concatenation

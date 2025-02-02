@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """API endpoints for signals."""
 
 from fastapi import APIRouter, Depends
@@ -11,14 +14,14 @@ router = APIRouter(prefix="/signals")
 
 
 class CreateSignalModel(BaseModel):
-    """Model for validating a new Signales."""
+    """Model for validating a new Signals."""
 
     entity_id: int
 
 
 @router.post("", response_model=SignalModel)
 async def create_signal(data: CreateSignalModel, dbsession=Depends(inject_db_session)) -> Signal:
-    """Create new signal."""
+    """Create new Signal."""
     signal = Signal(
         entity_id=data.entity_id,
     )
@@ -31,7 +34,7 @@ async def create_signal(data: CreateSignalModel, dbsession=Depends(inject_db_ses
 
 @router.get("", response_model=list[SignalModel])
 async def get_signals(dbsession=Depends(inject_db_session)) -> list[Signal]:
-    """Get all signals."""
+    """Get all Signals."""
     query = select(Signal).order_by(Signal.id)
     result = await dbsession.execute(query)
     return list(result.scalars())

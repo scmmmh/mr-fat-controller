@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """Create entities table.
 
 Revision ID: ca8797f8bc86

@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """Create Block Detectors table.
 
 Revision ID: 65f463b84705

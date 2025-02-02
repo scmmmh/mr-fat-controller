@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """API endpoints for block detectors."""
 
 from fastapi import APIRouter, Depends
@@ -17,7 +20,7 @@ class CreateBlockDetectorModel(BaseModel):
 
 
 @router.post("", response_model=BlockDetectorModel)
-async def create_points(data: CreateBlockDetectorModel, dbsession=Depends(inject_db_session)) -> BlockDetector:
+async def create_block_detector(data: CreateBlockDetectorModel, dbsession=Depends(inject_db_session)) -> BlockDetector:
     """Create a new block detector."""
     block_detector = BlockDetector(
         entity_id=data.entity_id,
@@ -30,7 +33,7 @@ async def create_points(data: CreateBlockDetectorModel, dbsession=Depends(inject
 
 
 @router.get("", response_model=list[BlockDetectorModel])
-async def get_entities(dbsession=Depends(inject_db_session)) -> list[BlockDetector]:
+async def get_block_detectors(dbsession=Depends(inject_db_session)) -> list[BlockDetector]:
     """Return all block detectors."""
     query = select(BlockDetector).order_by(BlockDetector.id)
     result = await dbsession.execute(query)

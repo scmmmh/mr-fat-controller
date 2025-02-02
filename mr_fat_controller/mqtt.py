@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """MQTT functionality."""
 
 import asyncio
@@ -32,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 def mqtt_client() -> Client:
+    """Return a correctly configured MQTT `Client`."""
     if settings.mqtt.tls:
         tls_context = ssl.create_default_context()
         if settings.mqtt.insecure_tls:
@@ -49,7 +53,7 @@ def mqtt_client() -> Client:
 
 
 async def mqtt_listener() -> None:
-    """Listener for the MQTT broker."""
+    """Run the MQTT broker listener."""
     running = True
     while running:
         try:
@@ -147,7 +151,8 @@ async def register_new_entity(data: dict) -> None:
         logger.error(e)
 
 
-async def recalculate_state() -> None:
+async def recalculate_state() -> None:  # TODO: This needs a better name.
+    """Recalculate the current state."""
     async with (
         db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
     ):
