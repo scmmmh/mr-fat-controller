@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """Models for a single device."""
 
 from typing import Annotated
@@ -25,7 +28,7 @@ class Device(Base):
 
 
 class DeviceModel(BaseModel):
-    """Model for returning a Device"""
+    """Model for returning a Device."""
 
     id: int
     external_id: str

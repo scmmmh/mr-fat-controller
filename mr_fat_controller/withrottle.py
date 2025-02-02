@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
+"""WiThrottle to MQTT bridge."""
+
 import asyncio
 import json
 import logging
@@ -15,6 +20,7 @@ from mr_fat_controller.settings import settings
 
 
 def split_str(text: str, sep: str) -> list[str]:
+    """Split the `text` by the `sep`."""
     parts = []
     while sep in text:
         parts.append(text[: text.find(sep)])
@@ -25,6 +31,7 @@ def split_str(text: str, sep: str) -> list[str]:
 
 
 def slugify(text: str) -> str:
+    """Slugify the `text`."""
     text = re.sub(r"\s+", "-", text.lower())
     return text
 
@@ -53,6 +60,7 @@ async def withrottle_client() -> AsyncGenerator[tuple[asyncio.StreamReader, asyn
 
 
 async def process_roster_list(line: str, client: Client) -> None:
+    """Process the roster list returned by the WiThrottle server."""
     line = line[2:]
     entries = split_str(line, "]\\[")
     for entry in entries[1:]:
@@ -73,6 +81,7 @@ async def process_roster_list(line: str, client: Client) -> None:
 
 
 async def process_power_status(line: str, client: Client) -> None:
+    """Process the power status returned by the WiThrottle server."""
     global power_state  # noqa: PLW0603
     initial_unknown = False
     if line == "PPA0":
@@ -107,6 +116,7 @@ async def withrottle_heartbeat(timeout: int, writer: asyncio.StreamWriter) -> No
 
 
 async def withrottle_to_mqtt(wt_reader: asyncio.StreamReader, wt_writer: asyncio.StreamWriter, client: Client) -> None:
+    """Handle the WiThrottle to MQTT direction."""
     try:
         heartbeat_task = None
         while True:
@@ -135,12 +145,13 @@ async def withrottle_to_mqtt(wt_reader: asyncio.StreamReader, wt_writer: asyncio
 
 
 async def mqtt_to_withrottle(wt_writer: asyncio.StreamWriter, client: Client) -> None:
+    """Handle the MQTT to WiThrottle direction."""
     try:
         await client.subscribe("mrfatcontroller/status")
         await client.subscribe(f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set")
         async for message in client.messages:
             if message.topic.value == "mrfatcontroller/status":
-                if message.payload.decode("utf-8") == "online":
+                if message.payload.decode("utf-8") == "online":  # type: ignore
                     await client.publish(
                         f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
                         json.dumps({"state": power_state}),
@@ -149,7 +160,7 @@ async def mqtt_to_withrottle(wt_writer: asyncio.StreamWriter, client: Client) ->
                 message.topic.value
                 == f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set"
             ):
-                data = json.loads(message.payload)
+                data = json.loads(message.payload)  # type: ignore
                 if data["state"] == "ON":
                     wt_writer.write(b"PPA1\n")
                     await wt_writer.drain()
@@ -161,6 +172,7 @@ async def mqtt_to_withrottle(wt_writer: asyncio.StreamWriter, client: Client) ->
 
 
 async def withrottle_mqtt_bridge():
+    """Run the WiThrottle to MQTT bridge."""
     async with mqtt_client() as client:
         async with withrottle_client() as (wt_reader, wt_writer):
             await client.publish(

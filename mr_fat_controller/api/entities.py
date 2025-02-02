@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
+"""API endpoints for handling entities."""
+
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
@@ -10,6 +15,7 @@ router = APIRouter(prefix="/entities")
 
 @router.get("", response_model=list[EntityModel])
 async def get_entities(dbsession=Depends(inject_db_session)) -> list[Entity]:
+    """GET all entities."""
     query = (
         select(Entity)
         .order_by(Entity.device_class, Entity.name)
@@ -27,6 +33,7 @@ async def get_entities(dbsession=Depends(inject_db_session)) -> list[Entity]:
 
 @router.delete("/{eid}", status_code=204)
 async def delete_entity(eid: int, dbsession=Depends(inject_db_session)) -> None:
+    """Delete a single `Entity`."""
     query = select(Entity).filter(Entity.id == eid)
     result = await dbsession.execute(query)
     entity = result.scalar()

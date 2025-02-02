@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
+"""State management support."""
+
 import logging
 from collections.abc import Awaitable, Callable
 
@@ -7,23 +12,35 @@ SIGNAL_COLOUR_THRESHOLD = 128
 
 
 class StateManager:
+    """Implements a state management engine."""
+
     def __init__(self) -> None:
+        """Initialise the state management with an empty state and empty listeners."""
         self.state = {}
         self.listeners = []
 
     async def add_state(self, topic: str, state: dict, notify: bool = True) -> None:  # noqa: FBT001, FBT002
+        """Add state to the state manager.
+
+        This will have no effect if the `topic` is already held in the state.
+        """
         if topic not in self.state:
             self.state[topic] = state
             if notify:
                 await self._notify(topic)
 
     async def update_model(self, topic: str, model: dict, notify: bool = True) -> None:  # noqa: FBT001, FBT002
+        """Update the model of a state held in the state manager.
+
+        This will have no effect if the `topic` is not held in the state.
+        """
         if topic in self.state:
             self.state[topic]["model"] = model
             if notify:
                 await self._notify(topic)
 
     async def update_state(self, topic: str, data: dict) -> None:
+        """Update the state of the given `topic` with the `data`."""
         if topic in self.state:
             obj = self.state[topic]
             if obj["type"] == "points":
@@ -54,17 +71,24 @@ class StateManager:
             logger.error(f"Unknown topic {topic}")
 
     async def add_listener(self, listener: Callable[[dict, str | None], Awaitable]) -> None:
+        """Add a callback listener.
+
+        The listener will be called immediately with the current state.
+        """
         self.listeners.append(listener)
         await listener(self.state, None)
 
     async def remove_listener(self, listener: Callable[[dict, str | None], Awaitable]) -> None:
+        """Remove a callback listener."""
         self.listeners = [lstner for lstner in self.listeners if lstner != listener]
 
     async def _notify(self, change_topic: str | None) -> None:
+        """Notify all listeners of a change."""
         for listener in self.listeners:
             await listener(self.state, change_topic)
 
     def __contains__(self, topic: str) -> bool:
+        """Return whether the given `topic` is held in the state."""
         return topic in self.state
 
 

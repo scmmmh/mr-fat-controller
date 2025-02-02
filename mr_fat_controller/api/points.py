@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """API endpoints for handling points."""
 
 from fastapi import APIRouter, Depends
@@ -49,7 +52,7 @@ async def get_all_points(dbsession=Depends(inject_db_session)) -> list[Points]:
 
 @router.get("/{pid}", response_model=PointsModel)
 async def get_points(pid: int, dbsession=Depends(inject_db_session)) -> Points:
-    """Return a single points."""
+    """Return a single set of points."""
     query = (
         select(Points)
         .filter(Points.id == pid)
@@ -75,7 +78,7 @@ class PatchPointsModel(BaseModel):
 
 @router.put("/{pid}", response_model=PointsModel)
 async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_db_session)) -> Points:
-    """Update a single points."""
+    """Update a single set of points."""
     query = (
         select(Points)
         .filter(Points.id == pid)

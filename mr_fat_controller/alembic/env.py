@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """Alembic environment setup."""
 
 from logging.config import fileConfig
@@ -58,9 +61,7 @@ def run_migrations_online() -> None:
 
     """
     connectable = engine_from_config(
-        config.get_section(
-            config.config_ini_section
-        ),  # pyright: ignore[reportArgumentType]
+        config.get_section(config.config_ini_section),  # pyright: ignore[reportArgumentType]
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

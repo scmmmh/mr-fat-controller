@@ -1,4 +1,7 @@
-"""Create signals table
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
+"""Create the signals table.
 
 Revision ID: c289b80d0c15
 Revises: 65f463b84705

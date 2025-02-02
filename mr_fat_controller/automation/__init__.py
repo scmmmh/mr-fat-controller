@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2023-present Mark Hall <mark.hall@work.room3b.eu>
+#
+# SPDX-License-Identifier: MIT
 """Package containing all automations."""
 
 import json
@@ -11,7 +14,7 @@ from mr_fat_controller.state import state_manager
 
 
 async def points_listener(state: dict, change_topic: str | None) -> None:
-    """Listener for changes to points."""
+    """Listen for changes to points."""
     points = []
     if change_topic is not None and change_topic in state:
         if state[change_topic]["type"] == "points":
@@ -60,5 +63,5 @@ async def points_listener(state: dict, change_topic: str | None) -> None:
 
 
 async def setup_automations() -> None:
-    """Setup all automation listeners."""
+    """Set up all automation listeners."""
     await state_manager.add_listener(points_listener)
