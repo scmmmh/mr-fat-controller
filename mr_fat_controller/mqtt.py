@@ -172,6 +172,9 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
             joinedload(Points.diverge_signal),
             joinedload(Points.root_signal),
             joinedload(Points.through_signal),
+            joinedload(Points.diverge_block_detector),
+            joinedload(Points.root_block_detector),
+            joinedload(Points.through_block_detector),
         )
         result = await dbsession.execute(query)
         for points in result.scalars():
