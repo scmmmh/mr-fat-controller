@@ -43,6 +43,8 @@ async def points_listener(state: dict, change_topic: str | None) -> None:
             points_list = (await dbsession.execute(query)).scalars()
             signal_changes = []
             for points in points_list:
+                if points.entity.state_topic not in state:
+                    continue
                 if state[points.entity.state_topic]["state"] == "diverge":
                     if points.diverge_signal is not None:
                         if points.root_block_detector is not None:
