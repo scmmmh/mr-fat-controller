@@ -63,6 +63,9 @@
     diverge_signal: null,
     root_signal: null,
     through_signal: null,
+    diverge_block_detector: null,
+    root_block_detector: null,
+    through_block_detector: null,
   } as Points;
 
   function openEditDialog(open: boolean) {
@@ -79,6 +82,9 @@
         diverge_signal: points.diverge_signal,
         root_signal: points.root_signal,
         through_signal: points.through_signal,
+        diverge_block_detector: points.diverge_block_detector,
+        root_block_detector: points.root_block_detector,
+        through_block_detector: points.through_block_detector,
       };
       const response = await window.fetch("/api/points/" + points.id, {
         method: "PUT",
@@ -98,6 +104,11 @@
   const signals = createQuery({
     queryFn: queryFn<Signal[]>,
     queryKey: ["signals"],
+  });
+
+  const blockDetectors = createQuery({
+    queryFn: queryFn<Signal[]>,
+    queryKey: ["block-detectors"],
   });
 </script>
 
@@ -166,41 +177,93 @@
                   {/each}
                 {/if}
               </select>
-              <label>
-                <span class="block text-sm font-bold mb-1">Root Signal</span>
-                <select
-                  bind:value={editPoints.root_signal}
-                  class="block px-4 py-2 border border-black rounded"
-                >
-                  {#if $signals.isSuccess}
-                    <option value={null}>--- No signal ---</option>
-                    {#each $signals.data as signal}
-                      <option value={signal.id}
-                        >{$entitiesDict[signal.entity_id].name}</option
-                      >
-                    {/each}
-                  {/if}
-                </select>
-                <label>
-                  <span class="block text-sm font-bold mb-1"
-                    >Through Signal</span
-                  >
-                  <select
-                    bind:value={editPoints.through_signal}
-                    class="block px-4 py-2 border border-black rounded"
-                  >
-                    {#if $signals.isSuccess}
-                      <option value={null}>--- No signal ---</option>
-                      {#each $signals.data as signal}
-                        <option value={signal.id}
-                          >{$entitiesDict[signal.entity_id].name}</option
-                        >
-                      {/each}
-                    {/if}
-                  </select>
-                </label>
-              </label></label
-            >
+            </label>
+            <label>
+              <span class="block text-sm font-bold mb-1">Root Signal</span>
+              <select
+                bind:value={editPoints.root_signal}
+                class="block px-4 py-2 border border-black rounded"
+              >
+                {#if $signals.isSuccess}
+                  <option value={null}>--- No signal ---</option>
+                  {#each $signals.data as signal}
+                    <option value={signal.id}
+                      >{$entitiesDict[signal.entity_id].name}</option
+                    >
+                  {/each}
+                {/if}
+              </select>
+            </label>
+            <label>
+              <span class="block text-sm font-bold mb-1">Through Signal</span>
+              <select
+                bind:value={editPoints.through_signal}
+                class="block px-4 py-2 border border-black rounded"
+              >
+                {#if $signals.isSuccess}
+                  <option value={null}>--- No signal ---</option>
+                  {#each $signals.data as signal}
+                    <option value={signal.id}
+                      >{$entitiesDict[signal.entity_id].name}</option
+                    >
+                  {/each}
+                {/if}
+              </select>
+            </label>
+            <label>
+              <span class="block text-sm font-bold mb-1"
+                >Diverge Block Detector</span
+              >
+              <select
+                bind:value={editPoints.diverge_block_detector}
+                class="block px-4 py-2 border border-black rounded"
+              >
+                {#if $blockDetectors.isSuccess}
+                  <option value={null}>--- No block detector ---</option>
+                  {#each $blockDetectors.data as blockDetector}
+                    <option value={blockDetector.id}
+                      >{$entitiesDict[blockDetector.entity_id].name}</option
+                    >
+                  {/each}
+                {/if}
+              </select>
+            </label>
+            <label>
+              <span class="block text-sm font-bold mb-1"
+                >Root Block Detector</span
+              >
+              <select
+                bind:value={editPoints.root_block_detector}
+                class="block px-4 py-2 border border-black rounded"
+              >
+                {#if $blockDetectors.isSuccess}
+                  <option value={null}>--- No block detector ---</option>
+                  {#each $blockDetectors.data as blockDetector}
+                    <option value={blockDetector.id}
+                      >{$entitiesDict[blockDetector.entity_id].name}</option
+                    >
+                  {/each}
+                {/if}
+              </select>
+            </label>
+            <label>
+              <span class="block text-sm font-bold mb-1"
+                >Through Block Detector</span
+              >
+              <select
+                bind:value={editPoints.through_block_detector}
+                class="block px-4 py-2 border border-black rounded"
+              >
+                {#if $blockDetectors.isSuccess}
+                  <option value={null}>--- No block detector ---</option>
+                  {#each $blockDetectors.data as blockDetector}
+                    <option value={blockDetector.id}
+                      >{$entitiesDict[blockDetector.entity_id].name}</option
+                    >
+                  {/each}
+                {/if}
+              </select>
+            </label>
           </div>
           <div class="px-4 py-2 flex flex-row justify-end gap-4">
             <Dialog.Close

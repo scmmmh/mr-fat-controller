@@ -43,6 +43,9 @@ type Points = {
   diverge_signal: number | null,
   root_signal: number | null,
   through_signal: number | null,
+  diverge_block_detector: number | null,
+  root_block_detector: number | null,
+  through_block_detector: number | null,
 };
 
 type PointsState = {

@@ -25,11 +25,17 @@ class Points(Base):
     through_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
     diverge_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
     root_signal_id = Column(Integer, ForeignKey("signals.id"), nullable=True)
+    through_block_detector_id = Column(Integer, ForeignKey("block_detectors.id"), nullable=True)
+    diverge_block_detector_id = Column(Integer, ForeignKey("block_detectors.id"), nullable=True)
+    root_block_detector_id = Column(Integer, ForeignKey("block_detectors.id"), nullable=True)
 
     entity = relationship("Entity", back_populates="points")
     through_signal = relationship("Signal", foreign_keys="Points.through_signal_id")
     diverge_signal = relationship("Signal", foreign_keys="Points.diverge_signal_id")
     root_signal = relationship("Signal", foreign_keys="Points.root_signal_id")
+    through_block_detector = relationship("BlockDetector", foreign_keys="Points.through_block_detector_id")
+    diverge_block_detector = relationship("BlockDetector", foreign_keys="Points.diverge_block_detector_id")
+    root_block_detector = relationship("BlockDetector", foreign_keys="Points.root_block_detector_id")
 
 
 class PointsModel(BaseModel):
@@ -42,5 +48,8 @@ class PointsModel(BaseModel):
     diverge_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
     root_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
     through_signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    diverge_block_detector: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    root_block_detector: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    through_block_detector: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)
