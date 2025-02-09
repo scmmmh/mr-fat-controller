@@ -22,7 +22,8 @@ type Entity = {
   block_detector: number | null,
   points: number | null,
   power_switch: number | null,
-  signal: number | null
+  signal: number | null,
+  train: number | null,
 };
 
 type BlockDetector = {

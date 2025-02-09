@@ -10,12 +10,14 @@
     mdiReload,
     mdiShapeCirclePlus,
     mdiSourceBranchPlus,
+    mdiTrain,
     mdiTrashCanOutline,
   } from "@mdi/js";
   import { Dialog, Label, RadioGroup } from "bits-ui";
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
+  import EntityEditor from "../editors/EntityEditor.svelte";
   import PointsEditor from "../editors/PointsEditor.svelte";
   import { useEntities, useSendMessage } from "../../util";
 
@@ -38,6 +40,7 @@
         queryClient.invalidateQueries({ queryKey: ["entities"] });
         queryClient.invalidateQueries({ queryKey: ["points"] });
         queryClient.invalidateQueries({ queryKey: ["power-switches"] });
+        queryClient.invalidateQueries({ queryKey: ["trains"] });
         deleteEntityOpen = false;
       }
     },
@@ -154,6 +157,8 @@
         <li class="flex flex-row space-x-2 items-center">
           {#if entity.points !== null}
             <PointsEditor {entity} />
+          {:else if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null && entity.train === null}
+            <EntityEditor {entity} />
           {:else}
             {#if entity.power_switch !== null}
               <Icon path={mdiPowerPlug} />
@@ -171,7 +176,7 @@
               <Icon path={mdiHelpRhombusOutline} />
             {/if}
             <span class="flex-1">{entity.name}</span>
-            {#if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null}
+            {#if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null && entity.train === null}
               {#if entity.device_class === "switch"}
                 <button
                   on:click={() => {
@@ -218,6 +223,15 @@
                     path={mdiRailroadLight}
                     label="Add a new signal"
                   /></button
+                >
+              {:else if entity.device_class === "decoder"}
+                <button
+                  on:click={() => {
+                    connectSignalEntity = entity;
+                    connectSignalOpen = true;
+                  }}
+                  class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
+                  ><Icon path={mdiTrain} label="Add a new train" /></button
                 >
               {/if}
             {/if}

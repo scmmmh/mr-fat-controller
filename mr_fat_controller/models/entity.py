@@ -11,6 +11,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from mr_fat_controller.models.meta import Base
+from mr_fat_controller.models.train import entity_trains
 from mr_fat_controller.models.util import object_to_model_id
 
 
@@ -33,6 +34,14 @@ class Entity(Base):
     points = relationship("Points", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     signal = relationship("Signal", back_populates="entity", uselist=False, cascade="all, delete-orphan")
+    train = relationship(
+        "Train",
+        secondary=entity_trains,
+        back_populates="entities",
+        uselist=False,
+        single_parent=True,
+        cascade="all, delete-orphan",
+    )
 
 
 class EntityModel(BaseModel):
@@ -51,5 +60,6 @@ class EntityModel(BaseModel):
     points: Annotated[int | None, BeforeValidator(object_to_model_id)]
     power_switch: Annotated[int | None, BeforeValidator(object_to_model_id)]
     signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    train: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)
