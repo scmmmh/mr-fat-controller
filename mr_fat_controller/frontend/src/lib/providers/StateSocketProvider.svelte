@@ -2,6 +2,7 @@
   import { AlertDialog } from "bits-ui";
   import { setContext } from "svelte";
   import { writable, get } from "svelte/store";
+  import { useQueryClient } from "@tanstack/svelte-query";
 
   const state = writable({
     block_detector: {},
@@ -9,12 +10,19 @@
     power_switch: {},
     signal: {},
   } as State);
+  const queryClient = useQueryClient();
   let disconnected = true;
   setContext("state", state);
   let ws: WebSocket | null = null;
 
   function connect() {
     state.set({ block_detector: {}, points: {}, power_switch: {}, signal: {} });
+
+    queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
+    queryClient.invalidateQueries({ queryKey: ["entities"] });
+    queryClient.invalidateQueries({ queryKey: ["points"] });
+    queryClient.invalidateQueries({ queryKey: ["power-switches"] });
+    queryClient.invalidateQueries({ queryKey: ["trains"] });
 
     ws = new WebSocket("/api/state");
     ws.addEventListener("message", (ev: MessageEvent) => {
