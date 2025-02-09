@@ -2,3 +2,7 @@
 #
 # SPDX-License-Identifier: MIT
 """The Model Railway Fat Controller server."""
+
+from mr_fat_controller.logging import setup_logging
+
+setup_logging()
