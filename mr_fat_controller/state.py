@@ -19,6 +19,11 @@ class StateManager:
         self.state = {}
         self.listeners = []
 
+    async def clear_state(self) -> None:
+        """Clear all state."""
+        self.state = {}
+        await self._notify(None)
+
     async def add_state(self, topic: str, state: dict, notify: bool = True) -> None:  # noqa: FBT001, FBT002
         """Add state to the state manager.
 
@@ -64,6 +69,18 @@ class StateManager:
                         obj["state"] = "danger"
                     elif "g" in data["color"] and data["color"]["g"] > SIGNAL_COLOUR_THRESHOLD:
                         obj["state"] = "clear"
+            elif obj["type"] == "decoder":
+                if "state" in data:
+                    if data["state"] == "ON":
+                        obj["state"] = "on"
+                    else:
+                        obj["state"] = "off"
+                if "functions" in data:
+                    obj["functions"] = data["functions"]
+                if "speed" in data:
+                    obj["speed"] = data["speed"]
+                if "direction" in data:
+                    obj["direction"] = data["direction"]
             else:
                 logger.debug(obj)
             await self._notify(topic)
