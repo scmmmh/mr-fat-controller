@@ -1,27 +1,18 @@
 <script lang="ts">
+  import { Dialog } from "bits-ui";
   import {
     mdiChip,
     mdiControllerClassicOutline,
     mdiHelpRhombusOutline,
     mdiTrashCanOutline,
   } from "@mdi/js";
-  import { Dialog } from "bits-ui";
-  import {
-    createQuery,
-    createMutation,
-    useQueryClient,
-  } from "@tanstack/svelte-query";
+  import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { queryFn } from "../../util";
+  import { useDevices } from "../../util";
 
   const queryClient = useQueryClient();
-
-  const devices = createQuery({
-    queryFn: queryFn<Device[]>,
-    queryKey: ["devices"],
-    refetchInterval: 60000,
-  });
+  const devices = useDevices();
 
   let deleteDeviceOpen = false;
   let deleteDevice: Device | null = null;
@@ -60,6 +51,7 @@
             <Icon path={mdiHelpRhombusOutline} />
           {/if}
           <span class="flex-1">{device.name}</span>
+
           <button
             on:click={() => {
               deleteDevice = device;
@@ -77,9 +69,9 @@
 
     <Dialog.Root bind:open={deleteDeviceOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
+        <Dialog.Overlay class="fixed inset-0 z-20 bg-white/80" />
         <Dialog.Content
-          class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+          class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
         >
           <Dialog.Title
             class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"

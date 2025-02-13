@@ -5,40 +5,19 @@
     mdiTransmissionTower,
     mdiTransmissionTowerOff,
   } from "@mdi/js";
-  import { getContext } from "svelte";
-  import { derived, type Writable } from "svelte/store";
-  import { createQuery } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { queryFn } from "../../util";
+  import {
+    useEntitiesDict,
+    usePowerSwitches,
+    useSendStateMessage,
+    useState,
+  } from "../../util";
 
-  const state = getContext("state") as Writable<State>;
-  const sendStateMessage = getContext(
-    "sendStateMessage",
-  ) as SendStateMessageFunction;
-  const entities = createQuery({
-    queryFn: queryFn<Entity[]>,
-    queryKey: ["entities"],
-    refetchInterval: 60000,
-  });
-
-  const powerSwitches = createQuery({
-    queryFn: queryFn<Points[]>,
-    queryKey: ["power-switches"],
-    refetchInterval: 60000,
-  });
-
-  const entityForEntityId = derived(entities, (entities) => {
-    if (entities.isSuccess) {
-      return Object.fromEntries(
-        entities.data.map((entity) => {
-          return [entity.id, entity];
-        }),
-      );
-    } else {
-      return {};
-    }
-  });
+  const state = useState();
+  const entitiesDict = useEntitiesDict();
+  const powerSwitches = usePowerSwitches();
+  const sendStateMessage = useSendStateMessage();
 
   function togglePowerSwitch(powerSwitch: PowerSwitch) {
     if ($state.power_switch[powerSwitch.id]) {
@@ -66,7 +45,7 @@
     <ul>
       {#each $powerSwitches.data as power_switch}
         <li class="flex flex-row space-x-2 items-center">
-          {#if $entityForEntityId[power_switch.entity_id]}
+          {#if $entitiesDict[power_switch.entity_id]}
             <button
               on:click={() => {
                 togglePowerSwitch(power_switch);
@@ -76,8 +55,8 @@
               $state.power_switch[power_switch.id].state === "on"
                 ? "true"
                 : "false"}
-              aria-label={$entityForEntityId[power_switch.entity_id].name}
-              title={$entityForEntityId[power_switch.entity_id].name}
+              aria-label={$entitiesDict[power_switch.entity_id].name}
+              title={$entitiesDict[power_switch.entity_id].name}
               class="px-1 py-1 rounded hover:text-emerald-700 hover:bg-white focus:text-emerald-700 focus:bg-white"
             >
               {#if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "on"}

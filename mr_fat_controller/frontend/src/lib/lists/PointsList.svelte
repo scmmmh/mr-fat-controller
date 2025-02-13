@@ -5,40 +5,19 @@
     mdiAutorenew,
     mdiHelpRhombusOutline,
   } from "@mdi/js";
-  import { getContext } from "svelte";
-  import { derived, type Writable } from "svelte/store";
-  import { createQuery } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { queryFn } from "../../util";
+  import {
+    useEntitiesDict,
+    usePoints,
+    useSendStateMessage,
+    useState,
+  } from "../../util";
 
-  const state = getContext("state") as Writable<State>;
-  const sendStateMessage = getContext(
-    "sendStateMessage",
-  ) as SendStateMessageFunction;
-  const entities = createQuery({
-    queryFn: queryFn<Entity[]>,
-    queryKey: ["entities"],
-    refetchInterval: 60000,
-  });
-
-  const points = createQuery({
-    queryFn: queryFn<Points[]>,
-    queryKey: ["points"],
-    refetchInterval: 60000,
-  });
-
-  const entityForEntityId = derived(entities, (entities) => {
-    if (entities.isSuccess) {
-      return Object.fromEntries(
-        entities.data.map((entity) => {
-          return [entity.id, entity];
-        }),
-      );
-    } else {
-      return {};
-    }
-  });
+  const state = useState();
+  const sendStateMessage = useSendStateMessage();
+  const entitiesDict = useEntitiesDict();
+  const points = usePoints();
 
   function togglePoints(points: Points) {
     if ($state.points[points.id]) {
@@ -66,7 +45,7 @@
     <ul class="flex-1 overflow-auto space-y-1">
       {#each $points.data as turnout}
         <li>
-          {#if $entityForEntityId[turnout.entity_id]}
+          {#if $entitiesDict[turnout.entity_id]}
             <button
               on:click={() => {
                 togglePoints(turnout);
@@ -82,8 +61,7 @@
               {:else}
                 <Icon path={mdiHelpRhombusOutline} />
               {/if}
-              <span class="flex-1"
-                >{$entityForEntityId[turnout.entity_id].name}</span
+              <span class="flex-1">{$entitiesDict[turnout.entity_id].name}</span
               >
             </button>
           {/if}

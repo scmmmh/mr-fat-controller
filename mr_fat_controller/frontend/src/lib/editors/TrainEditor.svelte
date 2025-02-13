@@ -73,9 +73,9 @@
 
 <Dialog.Root bind:open={deleteDialogOpen}>
   <Dialog.Portal>
-    <Dialog.Overlay class="fixed inset-0 z-50 bg-black/60" />
+    <Dialog.Overlay class="fixed inset-0 z-20 bg-white/80" />
     <Dialog.Content
-      class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
+      class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 w-96 max-h-[80%] flex flex-col bg-white border-2 border-black rounded-lg shadow-lg overflow-hidden"
     >
       <Dialog.Title
         class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"

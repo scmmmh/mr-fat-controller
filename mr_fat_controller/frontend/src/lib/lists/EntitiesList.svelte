@@ -1,27 +1,15 @@
 <script lang="ts">
-  import {
-    mdiChip,
-    mdiElectricSwitch,
-    mdiHelpRhombusOutline,
-    mdiLeak,
-    mdiLightbulbOutline,
-    mdiPowerPlug,
-    mdiRailroadLight,
-    mdiReload,
-  } from "@mdi/js";
-  import { useQueryClient } from "@tanstack/svelte-query";
+  import { mdiHelpRhombusOutline } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
   import EntityEditor from "../editors/EntityEditor.svelte";
   import PointsEditor from "../editors/PointsEditor.svelte";
-  import { useEntities, useSendMessage } from "../../util";
+  import { useEntities } from "../../util";
   import BlockDetectorEditor from "../editors/BlockDetectorEditor.svelte";
   import TrainEditor from "../editors/TrainEditor.svelte";
   import SignalEditor from "../editors/SignalEditor.svelte";
   import PowerSwitchEditor from "../editors/PowerSwitchEditor.svelte";
 
-  const queryClient = useQueryClient();
-  const sendStateMessage = useSendMessage();
   const entities = useEntities();
 </script>
 

@@ -1,5 +1,5 @@
 import { getContext } from "svelte";
-import { type Readable } from "svelte/store";
+import { type Readable, type Writable } from "svelte/store";
 import type { CreateQueryResult } from "@tanstack/svelte-query";
 
 /**
@@ -19,9 +19,20 @@ export async function queryFn<ResultType>({ queryKey }: { queryKey: string[] }):
   }
 }
 
+export function useState() {
+  return getContext("state") as Writable<State>;
+}
+
+export function useSendStateMessage() {
+  return getContext("sendStateMessage") as SendStateMessageFunction;
+}
 
 export function useSendMessage() {
   return getContext("sendStateMessage") as SendStateMessageFunction;
+}
+
+export function useDevices() {
+  return getContext("devices") as CreateQueryResult<Device[], Error>;
 }
 
 export function useEntities() {
@@ -30,6 +41,22 @@ export function useEntities() {
 
 export function useEntitiesDict() {
   return getContext("entitiesDict") as Readable<{[key: number]: Entity}>;
+}
+
+export function useBlockDetectors() {
+  return getContext("blockDetectors") as CreateQueryResult<BlockDetector[], Error>;
+}
+
+export function usePoints() {
+  return getContext("points") as CreateQueryResult<Points[], Error>;
+}
+
+export function usePowerSwitches() {
+  return getContext("powerSwitches") as CreateQueryResult<PowerSwitch[], Error>;
+}
+
+export function useSignals() {
+  return getContext("signals") as CreateQueryResult<Signal[], Error>;
 }
 
 export function useTrains() {
