@@ -35,9 +35,7 @@ async def state_socket(websocket: WebSocket) -> None:
         async with mqtt_client() as client:
             while True:
                 data = await websocket.receive_json()
-                if data["type"] == "refresh":
-                    await client.publish("mrfatcontroller/status", "online")
-                elif data["type"] == "set-points":
+                if data["type"] == "set-points":
                     async with db_session() as dbsession:
                         query = (
                             select(Entity)

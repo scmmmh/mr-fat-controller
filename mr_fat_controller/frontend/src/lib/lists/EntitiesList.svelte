@@ -26,18 +26,7 @@
 </script>
 
 <div class="flex flex-col overflow-hidden">
-  <div class="flex flex row">
-    <h2 class="flex-1 text-xl font-bold mb-2">Entities</h2>
-    <button
-      on:click={() => {
-        sendStateMessage({
-          type: "refresh",
-          payload: {},
-        });
-        queryClient.invalidateQueries({ queryKey: ["entities"] });
-      }}><Icon path={mdiReload} label="Refresh the entities" /></button
-    >
-  </div>
+  <h2 class="text-xl font-bold mb-2">Entities</h2>
 
   {#if $entities.isSuccess}
     <ul class="flex-1 overflow-auto space-y-1 pr-2">
