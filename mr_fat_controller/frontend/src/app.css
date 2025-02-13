@@ -3,3 +3,22 @@
 button {
     @apply cursor-pointer;
 }
+
+[data-melt-toolbar] {
+    @apply flex flex-row;
+}
+
+[data-melt-toolbar-button] {
+    @apply block transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1;
+}
+
+[data-melt-toolbar-button]:first-child {
+    @apply rounded-l;
+}
+[data-melt-toolbar-button]:last-child {
+    @apply rounded-r;
+}
+
+[data-melt-toolbar] [data-melt-separator] {
+    @apply border-l border-l-white;
+}
