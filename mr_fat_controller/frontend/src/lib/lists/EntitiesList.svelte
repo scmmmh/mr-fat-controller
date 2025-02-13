@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Dialog, Label, RadioGroup } from "bits-ui";
   import {
     mdiChip,
     mdiElectricSwitch,
@@ -9,12 +8,8 @@
     mdiPowerPlug,
     mdiRailroadLight,
     mdiReload,
-    mdiShapeCirclePlus,
-    mdiSourceBranchPlus,
-    mdiTrain,
-    mdiTrashCanOutline,
   } from "@mdi/js";
-  import { createMutation, useQueryClient } from "@tanstack/svelte-query";
+  import { useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
   import EntityEditor from "../editors/EntityEditor.svelte";
@@ -24,27 +19,6 @@
   const queryClient = useQueryClient();
   const sendStateMessage = useSendMessage();
   const entities = useEntities();
-
-  let deleteEntityOpen = false;
-  let deleteEntity: Entity | null = null;
-  const runDeleteEntity = createMutation({
-    mutationFn: async (entity: Entity) => {
-      const response = await window.fetch("/api/entities/" + deleteEntity?.id, {
-        method: "DELETE",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
-        queryClient.invalidateQueries({ queryKey: ["entities"] });
-        queryClient.invalidateQueries({ queryKey: ["points"] });
-        queryClient.invalidateQueries({ queryKey: ["power-switches"] });
-        queryClient.invalidateQueries({ queryKey: ["trains"] });
-        deleteEntityOpen = false;
-      }
-    },
-  });
 </script>
 
 <div class="flex flex-col overflow-hidden">
@@ -56,6 +30,7 @@
           type: "refresh",
           payload: {},
         });
+        queryClient.invalidateQueries({ queryKey: ["entities"] });
       }}><Icon path={mdiReload} label="Refresh the entities" /></button
     >
   </div>
@@ -85,17 +60,6 @@
               <Icon path={mdiHelpRhombusOutline} />
             {/if}
             <span class="w-80 truncate">{entity.name}</span>
-            <button
-              on:click={() => {
-                deleteEntity = entity;
-                deleteEntityOpen = true;
-              }}
-              class="transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white rounded px-2 py-1"
-              ><Icon
-                path={mdiTrashCanOutline}
-                label="Delete the entity"
-              /></button
-            >
           {/if}
         </li>
       {/each}

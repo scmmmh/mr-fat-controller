@@ -23,6 +23,7 @@
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
+  import { useEntitiesDict, useTrains } from "../../util";
 
   export let entity: Entity;
 
@@ -33,6 +34,9 @@
   let connectBlockDetectorDialogOpen = false;
   let connectSignalDialogOpen = false;
   let connectTrainDialogOpen = false;
+
+  const trains = useTrains();
+  const entitiesDict = useEntitiesDict();
 
   const deleteEntity = createMutation({
     mutationFn: async (entity: Entity) => {
@@ -136,22 +140,43 @@
     },
   });
 
+  let newTrainName = "";
+  let newTrainExtend = "";
   const connectAsTrain = createMutation({
     mutationFn: async (entity: Entity) => {
-      const response = await window.fetch("/api/trains", {
-        method: "POST",
-        body: JSON.stringify({
-          entity_id: entity.id,
-        }),
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
-        queryClient.invalidateQueries({ queryKey: ["entities"] });
-        queryClient.invalidateQueries({ queryKey: ["trains"] });
-        connectTrainDialogOpen = false;
+      if (newTrainExtend === "") {
+        const response = await window.fetch("/api/trains", {
+          method: "POST",
+          body: JSON.stringify({
+            entity_id: entity.id,
+            name: newTrainName,
+          }),
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.ok) {
+          queryClient.invalidateQueries({ queryKey: ["entities"] });
+          queryClient.invalidateQueries({ queryKey: ["trains"] });
+          connectTrainDialogOpen = false;
+        }
+      } else {
+        const response = await window.fetch("/api/trains/" + newTrainExtend, {
+          method: "PATCH",
+          body: JSON.stringify({
+            entity_id: entity.id,
+          }),
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.ok) {
+          queryClient.invalidateQueries({ queryKey: ["entities"] });
+          queryClient.invalidateQueries({ queryKey: ["trains"] });
+          connectTrainDialogOpen = false;
+        }
       }
     },
   });
@@ -211,7 +236,7 @@
   {:else if entity.device_class === "decoder"}
     <Toolbar.Button
       on:click={() => {
-        connectSignalDialogOpen = true;
+        connectTrainDialogOpen = true;
       }}><Icon path={mdiTrain} label="Add a new signal" /></Toolbar.Button
     >
   {/if}
@@ -475,12 +500,30 @@
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
         <div class="flex-1 px-4 py-2">
-          <p>
-            This will add the <span
-              class="inline-block border border-emerald-700 px-2 rounded"
-              >{entity.name}</span
-            > as a train.
-          </p>
+          <label class="block mb-4">
+            <span class="block text-sm font-bold mb-1">Add {entity.name}</span>
+            <select
+              bind:value={newTrainExtend}
+              class="block px-4 py-2 border border-black rounded"
+            >
+              <option value="">as a new train</option>
+              {#if $trains.isSuccess}
+                {#each $trains.data as train}
+                  <option value={train.id}>to {train.name}</option>
+                {/each}
+              {/if}
+            </select>
+          </label>
+          {#if newTrainExtend === ""}
+            <label class="block mb-4">
+              <span class="block text-sm font-bold mb-1">New train name</span>
+              <input
+                bind:value={newTrainName}
+                type="text"
+                class="block px-4 py-2 border border-black rounded"
+              />
+            </label>
+          {/if}
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close

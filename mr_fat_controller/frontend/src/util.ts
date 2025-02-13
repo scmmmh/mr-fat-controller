@@ -27,6 +27,11 @@ export function useSendMessage() {
 export function useEntities() {
   return getContext("entities") as CreateQueryResult<Entity[], Error>;
 }
+
 export function useEntitiesDict() {
   return getContext("entitiesDict") as Readable<{[key: number]: Entity}>;
+}
+
+export function useTrains() {
+  return getContext("trains") as CreateQueryResult<Train[], Error>;
 }

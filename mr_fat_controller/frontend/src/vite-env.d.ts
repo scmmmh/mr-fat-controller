@@ -74,6 +74,12 @@ type SignalState = {
   state: "off" | "danger" | "clear" | "unknown",
 };
 
+type Train = {
+  id: number,
+  name: string,
+  entities: number[],
+};
+
 type State = {
   block_detector: { [key: number]: BlockDetectorState },
   points: { [key: number]: PointsState },

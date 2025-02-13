@@ -180,7 +180,7 @@
               <Label.Root for="points-through-on">Through is ON</Label.Root>
             </div>
           </RadioGroup.Root>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1">Diverge Signal</span>
             <select
               bind:value={editPoints.diverge_signal}
@@ -196,7 +196,7 @@
               {/if}
             </select>
           </label>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1">Root Signal</span>
             <select
               bind:value={editPoints.root_signal}
@@ -212,7 +212,7 @@
               {/if}
             </select>
           </label>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1">Through Signal</span>
             <select
               bind:value={editPoints.through_signal}
@@ -228,7 +228,7 @@
               {/if}
             </select>
           </label>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1"
               >Diverge Block Detector</span
             >
@@ -246,7 +246,7 @@
               {/if}
             </select>
           </label>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1">Root Block Detector</span
             >
             <select
@@ -263,7 +263,7 @@
               {/if}
             </select>
           </label>
-          <label>
+          <label class="block mb-4">
             <span class="block text-sm font-bold mb-1"
               >Through Block Detector</span
             >
