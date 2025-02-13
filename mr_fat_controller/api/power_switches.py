@@ -4,8 +4,10 @@
 """API endpoints for power switches."""
 
 from fastapi import APIRouter, Depends
+from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 from mr_fat_controller.models import PowerSwitch, PowerSwitchModel, inject_db_session
 from mr_fat_controller.mqtt import full_state_refresh, recalculate_state
@@ -35,6 +37,31 @@ async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_d
 @router.get("", response_model=list[PowerSwitchModel])
 async def get_power_switches(dbsession=Depends(inject_db_session)) -> list[PowerSwitch]:
     """GET all power switches."""
-    query = select(PowerSwitch).order_by(PowerSwitch.id)
+    query = select(PowerSwitch).order_by(PowerSwitch.id).options(joinedload(PowerSwitch.entity))
     result = await dbsession.execute(query)
     return list(result.scalars())
+
+
+@router.get("/{psid}", response_model=PowerSwitchModel)
+async def get_power_switch(psid: int, dbsession=Depends(inject_db_session)) -> PowerSwitch:
+    """Get a power switch."""
+    query = select(PowerSwitch).filter(PowerSwitch.id == psid).options(joinedload(PowerSwitch.entity))
+    power_switch = (await dbsession.execute(query)).scalar()
+    if power_switch is not None:
+        return power_switch
+    else:
+        raise HTTPException(404, "No such power switch found")
+
+
+@router.delete("/{psid}", status_code=204)
+async def delete_power_switches(psid: int, dbsession=Depends(inject_db_session)) -> None:
+    """GET all power switches."""
+    query = select(PowerSwitch).filter(PowerSwitch.id == psid).options(joinedload(PowerSwitch.entity))
+    power_switch = (await dbsession.execute(query)).scalar()
+    if power_switch is not None:
+        await dbsession.delete(power_switch)
+        await dbsession.commit()
+        await recalculate_state()
+        await full_state_refresh()
+    else:
+        raise HTTPException(404, "No such power switch found")

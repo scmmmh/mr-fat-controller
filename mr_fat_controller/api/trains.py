@@ -47,6 +47,17 @@ async def get_trains(dbsession=Depends(inject_db_session)) -> list[Train]:
     return list(result.scalars())
 
 
+@router.get("/{tid}", response_model=TrainModel)
+async def get_train(tid: int, dbsession=Depends(inject_db_session)) -> Train:
+    """Get a train."""
+    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entities))
+    train = (await dbsession.execute(query)).scalar()
+    if train is not None:
+        return train
+    else:
+        raise HTTPException(404, "No such train found")
+
+
 class PatchTrainModel(BaseModel):
     """Model for validating patching a train."""
 

@@ -15,6 +15,10 @@
   import EntityEditor from "../editors/EntityEditor.svelte";
   import PointsEditor from "../editors/PointsEditor.svelte";
   import { useEntities, useSendMessage } from "../../util";
+  import BlockDetectorEditor from "../editors/BlockDetectorEditor.svelte";
+  import TrainEditor from "../editors/TrainEditor.svelte";
+  import SignalEditor from "../editors/SignalEditor.svelte";
+  import PowerSwitchEditor from "../editors/PowerSwitchEditor.svelte";
 
   const queryClient = useQueryClient();
   const sendStateMessage = useSendMessage();
@@ -36,29 +40,23 @@
   </div>
 
   {#if $entities.isSuccess}
-    <ul class="flex-1 overflow-auto space-y-1">
+    <ul class="flex-1 overflow-auto space-y-1 pr-2">
       {#each $entities.data as entity}
         <li class="flex flex-row space-x-4 items-center">
           {#if entity.points !== null}
             <PointsEditor {entity} />
           {:else if entity.points === null && entity.power_switch === null && entity.block_detector === null && entity.signal === null && entity.train === null}
             <EntityEditor {entity} />
+          {:else if entity.block_detector !== null}
+            <BlockDetectorEditor {entity} />
+          {:else if entity.power_switch !== null}
+            <PowerSwitchEditor {entity} />
+          {:else if entity.signal !== null}
+            <SignalEditor {entity} />
+          {:else if entity.train !== null}
+            <TrainEditor {entity} />
           {:else}
-            {#if entity.power_switch !== null}
-              <Icon path={mdiPowerPlug} />
-            {:else if entity.signal !== null}
-              <Icon path={mdiRailroadLight} />
-            {:else if entity.device_class === "switch"}
-              <Icon path={mdiElectricSwitch} />
-            {:else if entity.device_class === "decoder"}
-              <Icon path={mdiChip} />
-            {:else if entity.device_class === "binary_sensor"}
-              <Icon path={mdiLeak} />
-            {:else if entity.device_class === "light"}
-              <Icon path={mdiLightbulbOutline} />
-            {:else}
-              <Icon path={mdiHelpRhombusOutline} />
-            {/if}
+            <Icon path={mdiHelpRhombusOutline} />
             <span class="w-80 truncate">{entity.name}</span>
           {/if}
         </li>

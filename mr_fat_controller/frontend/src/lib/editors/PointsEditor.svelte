@@ -25,7 +25,7 @@
 
   const deleteEntity = createMutation({
     mutationFn: async (entity: Entity) => {
-      const response = await window.fetch("/api/entities/" + entity.id, {
+      const response = await window.fetch("/api/points/" + entity.points, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -117,7 +117,7 @@
 <span class="w-80 truncate">{entity.name}</span>
 
 {#if $points.isSuccess}
-  <Toolbar.Root>
+  <Toolbar.Root class="flex-1 justify-end" aria-label="{entity.name} actions">
     <Toolbar.Button
       on:click={() => {
         editDialogOpen = true;
@@ -309,7 +309,7 @@
     >
       <Dialog.Title
         class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
-        >Delete the points {entity.name}</Dialog.Title
+        >Confirm delete</Dialog.Title
       >
       <form
         on:submit={(ev) => {
@@ -320,10 +320,10 @@
       >
         <div class="flex-1 px-4 py-2">
           <p>
-            Delete the <span
+            Delete the points <span
               class="inline-block border border-emerald-700 px-2 rounded"
               >{entity.name}</span
-            > and its configured points.
+            >.
           </p>
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
