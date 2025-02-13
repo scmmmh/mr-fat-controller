@@ -18,10 +18,14 @@
 
   const deleteEntity = createMutation({
     mutationFn: async (entity: Entity) => {
-      const response = await window.fetch("/api/entities/" + entity.id, {
-        method: "DELETE",
+      const response = await window.fetch("/api/trains/" + entity.train, {
+        method: "PATCH",
+        body: JSON.stringify({
+          entity_id: entity.id,
+        }),
         headers: {
           Accept: "application/json",
+          "Content-Type": "application/json",
         },
       });
       if (response.ok) {
@@ -75,7 +79,7 @@
     >
       <Dialog.Title
         class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
-        >Delete the train {entity.name}</Dialog.Title
+        >Confirm delete</Dialog.Title
       >
       <form
         on:submit={(ev) => {
@@ -86,10 +90,11 @@
       >
         <div class="flex-1 px-4 py-2">
           <p>
-            Delete the <span
+            Remove the <span
               class="inline-block border border-emerald-700 px-2 rounded"
               >{entity.name}</span
-            > and its configured train.
+            > from its train. This will also delete the train, if no entities are
+            linked to it.
           </p>
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">

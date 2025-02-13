@@ -64,22 +64,34 @@ class PatchTrainModel(BaseModel):
     entity_id: int | None = None
 
 
-@router.patch("/{tid}", response_model=TrainModel)
-async def patch_train(tid: int, data: PatchTrainModel, dbsession=Depends(inject_db_session)) -> Train:
+@router.patch("/{tid}", response_model=TrainModel | None)
+async def patch_train(tid: int, data: PatchTrainModel, dbsession=Depends(inject_db_session)) -> Train | None:
     """Patch a train."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entities))
+    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entities).selectinload(Entity.train))
     train = (await dbsession.execute(query)).scalar()
     if train:
-        query = select(Entity).filter(Entity.id == data.entity_id).options(selectinload(Entity.train))
-        entity = (await dbsession.execute(query)).scalar()
-        if entity:
-            train.entities.append(entity)
+        exists = False
+        for entity in train.entities:
+            if entity.id == data.entity_id:
+                exists = True
+                break
+        if exists:
+            train.entities = [entity for entity in train.entities if entity.id != data.entity_id]
+            if len(train.entities) == 0:
+                await dbsession.delete(train)
             await dbsession.commit()
-            await dbsession.refresh(train)
-            await recalculate_state()
-            await full_state_refresh()
-            return train
+            return None
         else:
-            raise HTTPException(422, "Entity not set or found")
+            query = select(Entity).filter(Entity.id == data.entity_id).options(selectinload(Entity.train))
+            entity = (await dbsession.execute(query)).scalar()
+            if entity:
+                train.entities.append(entity)
+                await dbsession.commit()
+                await dbsession.refresh(train)
+            else:
+                raise HTTPException(422, "Entity not set or found")
+        await recalculate_state()
+        await full_state_refresh()
+        return train
     else:
         raise HTTPException(404, "No such train found")

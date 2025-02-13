@@ -40,7 +40,6 @@ class Entity(Base):
         back_populates="entities",
         uselist=False,
         single_parent=True,
-        cascade="all, delete-orphan",
     )
 
 
