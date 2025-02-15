@@ -121,6 +121,7 @@
     <Toolbar.Button
       on:click={() => {
         editDialogOpen = true;
+        openEditDialog(true);
       }}
       ><Icon
         path={mdiPencilOutline}
