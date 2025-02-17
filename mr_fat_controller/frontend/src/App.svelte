@@ -12,6 +12,7 @@
   import SignalList from "./lib/lists/SignalList.svelte";
   import StateSocketProvider from "./lib/providers/StateSocketProvider.svelte";
   import DataProvider from "./lib/providers/DataProvider.svelte";
+  import TrainController from "./lib/controllers/TrainController.svelte";
 
   const client = new QueryClient();
 </script>
@@ -79,11 +80,12 @@
                   <PointsList />
                   <BlockDetectorList />
                   <SignalList />
+                  <TrainController />
+                  <TrainController />
                 </div>
               </Tabs.Content>
             </Tabs.Root>
           </div>
-          <div class="w-2/6"></div>
         </main>
       </div>
     </DataProvider>

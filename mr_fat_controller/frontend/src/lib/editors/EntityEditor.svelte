@@ -184,7 +184,7 @@
 
 {#if entity.device_class === "switch"}
   <Icon path={mdiElectricSwitch} />
-{:else if entity.device_class === "decoder"}
+{:else if entity.device_class === "train"}
   <Icon path={mdiChip} />
 {:else if entity.device_class === "binary_sensor"}
   <Icon path={mdiLeak} />
@@ -233,11 +233,11 @@
       }}
       ><Icon path={mdiRailroadLight} label="Add a new signal" /></Toolbar.Button
     >
-  {:else if entity.device_class === "decoder"}
+  {:else if entity.device_class === "train"}
     <Toolbar.Button
       on:click={() => {
         connectTrainDialogOpen = true;
-      }}><Icon path={mdiTrain} label="Add a new signal" /></Toolbar.Button
+      }}><Icon path={mdiTrain} label="Add a new train" /></Toolbar.Button
     >
   {/if}
   <Separator.Root />
@@ -500,30 +500,12 @@
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
         <div class="flex-1 px-4 py-2">
-          <label class="block mb-4">
-            <span class="block text-sm font-bold mb-1">Add {entity.name}</span>
-            <select
-              bind:value={newTrainExtend}
-              class="block px-4 py-2 border border-black rounded"
-            >
-              <option value="">as a new train</option>
-              {#if $trains.isSuccess}
-                {#each $trains.data as train}
-                  <option value={train.id}>to {train.name}</option>
-                {/each}
-              {/if}
-            </select>
-          </label>
-          {#if newTrainExtend === ""}
-            <label class="block mb-4">
-              <span class="block text-sm font-bold mb-1">New train name</span>
-              <input
-                bind:value={newTrainName}
-                type="text"
-                class="block px-4 py-2 border border-black rounded"
-              />
-            </label>
-          {/if}
+          <p>
+            This will add the <span
+              class="inline-block border border-emerald-700 px-2 rounded"
+              >{entity.name}</span
+            > as a train.
+          </p>
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close

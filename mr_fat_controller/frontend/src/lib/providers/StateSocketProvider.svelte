@@ -9,14 +9,25 @@
     points: {},
     power_switch: {},
     signal: {},
+    train: {},
   } as State);
   const queryClient = useQueryClient();
+  const reconnectTimeouts = [
+    1000, 1000, 1000, 2500, 5000, 10000, 20000, 30000, 60000,
+  ];
+  let reconnectCount = 0;
   let disconnected = true;
   setContext("state", state);
   let ws: WebSocket | null = null;
 
   function connect() {
-    state.set({ block_detector: {}, points: {}, power_switch: {}, signal: {} });
+    state.set({
+      block_detector: {},
+      points: {},
+      power_switch: {},
+      signal: {},
+      train: {},
+    });
 
     queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
     queryClient.invalidateQueries({ queryKey: ["entities"] });
@@ -26,15 +37,13 @@
 
     ws = new WebSocket("/api/state");
     ws.addEventListener("message", (ev: MessageEvent) => {
+      reconnectCount = 0;
       disconnected = false;
       const msg = JSON.parse(ev.data) as StateMessage;
       if (msg.type === "state") {
         const new_state = get(state);
         Object.entries(msg.payload).forEach(([key, obj]) => {
-          new_state[obj.type][obj.model.id] = {
-            model: obj.model,
-            state: obj.state,
-          };
+          new_state[obj.type][obj.model.id] = obj;
         });
         state.set(new_state);
       }
@@ -42,7 +51,13 @@
 
     ws.addEventListener("close", () => {
       disconnected = true;
-      window.setTimeout(connect, 10000);
+      window.setTimeout(
+        connect,
+        reconnectTimeouts[
+          Math.min(reconnectCount, reconnectTimeouts.length - 1)
+        ],
+      );
+      reconnectCount = reconnectCount + 1;
     });
   }
 

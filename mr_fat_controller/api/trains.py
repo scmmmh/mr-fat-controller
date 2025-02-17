@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
-from mr_fat_controller.models import Entity, Train, TrainModel, inject_db_session
+from mr_fat_controller.models import Train, TrainModel, inject_db_session
 from mr_fat_controller.mqtt import full_state_refresh, recalculate_state
 
 router = APIRouter(prefix="/trains")
@@ -19,30 +19,27 @@ class CreateTrainModel(BaseModel):
     """Model for validating a new train."""
 
     entity_id: int
-    name: str
 
 
 @router.post("", response_model=TrainModel)
 async def create_train(data: CreateTrainModel, dbsession=Depends(inject_db_session)) -> Train:
     """Create new train."""
-    query = select(Entity).filter(Entity.id == data.entity_id).options(selectinload(Entity.train))
-    entity = (await dbsession.execute(query)).scalar()
-    if entity:
-        train = Train(name=data.name)
-        train.entities.append(entity)
-        dbsession.add(train)
-        await dbsession.commit()
-        await recalculate_state()
-        await full_state_refresh()
-        return train
-    else:
-        raise HTTPException(422, "Entity not set or found")
+    train = Train(
+        entity_id=data.entity_id,
+    )
+    dbsession.add(train)
+    await dbsession.commit()
+    await recalculate_state()
+    await full_state_refresh()
+    query = select(Train).filter(Train.id == train.id).options(joinedload(Train.entity))
+    train = (await dbsession.execute(query)).scalar()
+    return train
 
 
 @router.get("", response_model=list[TrainModel])
 async def get_trains(dbsession=Depends(inject_db_session)) -> list[Train]:
     """Get all trains."""
-    query = select(Train).order_by(Train.id).options(selectinload(Train.entities))
+    query = select(Train).order_by(Train.id).options(selectinload(Train.entity))
     result = await dbsession.execute(query)
     return list(result.scalars())
 
@@ -50,7 +47,7 @@ async def get_trains(dbsession=Depends(inject_db_session)) -> list[Train]:
 @router.get("/{tid}", response_model=TrainModel)
 async def get_train(tid: int, dbsession=Depends(inject_db_session)) -> Train:
     """Get a train."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entities))
+    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
         return train
@@ -58,40 +55,13 @@ async def get_train(tid: int, dbsession=Depends(inject_db_session)) -> Train:
         raise HTTPException(404, "No such train found")
 
 
-class PatchTrainModel(BaseModel):
-    """Model for validating patching a train."""
-
-    entity_id: int | None = None
-
-
-@router.patch("/{tid}", response_model=TrainModel | None)
-async def patch_train(tid: int, data: PatchTrainModel, dbsession=Depends(inject_db_session)) -> Train | None:
-    """Patch a train."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entities).selectinload(Entity.train))
+@router.delete("/{tid}", status_code=204)
+async def delete_train(tid: int, dbsession=Depends(inject_db_session)) -> None:
+    """Delete a trains."""
+    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
     train = (await dbsession.execute(query)).scalar()
-    if train:
-        exists = False
-        for entity in train.entities:
-            if entity.id == data.entity_id:
-                exists = True
-                break
-        if exists:
-            train.entities = [entity for entity in train.entities if entity.id != data.entity_id]
-            if len(train.entities) == 0:
-                await dbsession.delete(train)
-            await dbsession.commit()
-            return None
-        else:
-            query = select(Entity).filter(Entity.id == data.entity_id).options(selectinload(Entity.train))
-            entity = (await dbsession.execute(query)).scalar()
-            if entity:
-                train.entities.append(entity)
-                await dbsession.commit()
-                await dbsession.refresh(train)
-            else:
-                raise HTTPException(422, "Entity not set or found")
-        await recalculate_state()
-        await full_state_refresh()
-        return train
+    if train is not None:
+        await dbsession.delete(train)
+        await dbsession.commit()
     else:
         raise HTTPException(404, "No such train found")

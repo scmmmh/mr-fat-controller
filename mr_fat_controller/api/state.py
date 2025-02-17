@@ -10,7 +10,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from mr_fat_controller.models import Entity, Points, PowerSwitch, db_session
+from mr_fat_controller.models import Entity, Points, PowerSwitch, Train, db_session
 from mr_fat_controller.mqtt import mqtt_client
 from mr_fat_controller.state import state_manager
 
@@ -66,6 +66,43 @@ async def state_socket(websocket: WebSocket) -> None:
                                 entity.command_topic,  # type: ignore
                                 json.dumps({"state": data["payload"]["state"].upper()}),
                             )
+                elif data["type"] == "set-reverser":
+                    async with db_session() as dbsession:
+                        query = select(Entity).join(Entity.train).filter(Train.id == data["payload"]["id"])
+                        entity = (await dbsession.execute(query)).scalar()
+                        if entity is not None:
+                            await client.publish(
+                                entity.command_topic,  # type: ignore
+                                json.dumps({"direction": data["payload"]["state"]}),
+                            )
+                elif data["type"] == "set-speed":
+                    async with db_session() as dbsession:
+                        query = select(Entity).join(Entity.train).filter(Train.id == data["payload"]["id"])
+                        entity = (await dbsession.execute(query)).scalar()
+                        if entity is not None:
+                            await client.publish(
+                                entity.command_topic,  # type: ignore
+                                json.dumps({"speed": data["payload"]["state"]}),
+                            )
+                elif data["type"] == "toggle-decoder-function":
+                    async with db_session() as dbsession:
+                        query = select(Entity).join(Entity.train).filter(Train.id == data["payload"]["id"])
+                        entity = (await dbsession.execute(query)).scalar()
+                        if entity is not None:
+                            functions = state_manager.state[entity.state_topic]["functions"]
+                            if data["payload"]["state"] in functions:
+                                if functions[data["payload"]["state"]]["state"] == "off":
+                                    await client.publish(
+                                        entity.command_topic,  # type: ignore
+                                        json.dumps({"functions": {data["payload"]["state"]: "on"}}),
+                                    )
+                                else:
+                                    await client.publish(
+                                        entity.command_topic,  # type: ignore
+                                        json.dumps({"functions": {data["payload"]["state"]: "off"}}),
+                                    )
+                else:
+                    logger.debug(data)
     except WebSocketDisconnect:
         logger.debug("Websocket disconnected")
     except Exception as e:

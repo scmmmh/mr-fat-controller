@@ -7,10 +7,10 @@ import logging
 from mr_fat_controller.__about__ import __version__
 from mr_fat_controller.mqtt import mqtt_client as mqtt_client_connection
 from mr_fat_controller.settings import settings
-from mr_fat_controller.state import state_manager
 from mr_fat_controller.withrottle.util import slugify
 
 logger = logging.getLogger(__name__)
+state = {}
 
 WITHROTTLE_DEVICE = {
     "identifiers": [f"{slugify(settings.withrottle.name)}-withrottle-bridge"],
@@ -21,41 +21,71 @@ WITHROTTLE_DEVICE = {
 }
 
 
+async def publish_full_state(client, only_publish: str | None = None) -> None:
+    """Publish the full current state."""
+    for key, value in state.items():
+        if only_publish is not None and only_publish != key:
+            continue
+        if key == "power":
+            if state["power"]["state"] == "on":
+                await client.publish(
+                    f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+                    json.dumps({"state": "ON"}),
+                )
+            else:
+                await client.publish(
+                    f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+                    json.dumps({"state": "OFF"}),
+                )
+        elif value["type"] == "train":
+            msg = {"state": value["state"].upper()}
+            if "speed" in value:
+                msg["speed"] = value["speed"]
+            if "direction" in value:
+                msg["direction"] = value["direction"]
+            if "functions" in value:
+                msg["functions"] = value["functions"]
+            await client.publish(f"mrfatcontroller/train/{key}/state", json.dumps(msg))
+
+
 async def publish_entities(client) -> None:
     """Publish all known entities for discovery."""
-    await client.publish(
-        f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/config",
-        json.dumps(
-            {
-                "unique_id": f"{slugify(settings.withrottle.name)}-withrottle-power",
-                "name": f"{settings.withrottle.name} WiThrottle Power",
-                "device_class": "switch",
-                "state_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
-                "command_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set",
-                "device": WITHROTTLE_DEVICE,
-            }
-        ),
-    )
-    for state_topic, entity in state_manager.state.items():
-        if entity["type"] == "decoder":
+    for key, value in state.items():
+        if key == "power":
             await client.publish(
-                f"{state_topic[:-6]}/config",
+                f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/config",
                 json.dumps(
                     {
-                        "unique_id": state_topic[:-6],
-                        "name": entity["name"],
-                        "device_class": "decoder",
-                        "state_topic": state_topic,
-                        "command_topic": f"{state_topic[:-6]}/set",
+                        "unique_id": f"{slugify(settings.withrottle.name)}-withrottle-power",
+                        "name": f"{settings.withrottle.name} WiThrottle Power",
+                        "device_class": "switch",
+                        "state_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",  # noqa:E501
+                        "command_topic": f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set",  # noqa:E501
                         "device": WITHROTTLE_DEVICE,
                     }
                 ),
             )
-            entity["published"] = True
+        elif value["type"] == "train":
+            await client.publish(
+                f"mrfatcontroller/train/{key}/config",
+                json.dumps(
+                    {
+                        "unique_id": f"mrfatcontroller/train/{key}",
+                        "name": value["name"],
+                        "device_class": "train",
+                        "state_topic": f"mrfatcontroller/train/{key}/state",
+                        "command_topic": f"mrfatcontroller/train/{key}/set",
+                        "device": WITHROTTLE_DEVICE,
+                    }
+                ),
+            )
+    await asyncio.sleep(1)
+    await publish_full_state(client)
 
 
-async def mqtt_client() -> None:
+async def mqtt_client(wt_to_mqtt: asyncio.Queue, mqtt_to_wt: asyncio.Queue) -> None:
     """Run the mqtt client."""
+    queue_listener_task = None
     try:
         while True:
             async with mqtt_client_connection() as client:
@@ -63,56 +93,84 @@ async def mqtt_client() -> None:
 
                 await publish_entities(client)
 
-                async def state_listener(state: dict, topic: str | None) -> None:
-                    """State listener for sending MQTT messages."""
-                    for key, value in state.items():
-                        if topic is None or key == topic:
-                            if key == "power":
-                                if "power" in state and value["state"] == "on":
-                                    await client.publish(
-                                        f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
-                                        json.dumps({"state": "ON"}),
-                                    )
-                                elif "power" in state and value["state"] == "off":
-                                    await client.publish(
-                                        f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
-                                        json.dumps({"state": "OFF"}),
-                                    )
-                            elif value["type"] == "decoder":
-                                if "published" not in value:
-                                    await publish_entities(client)
-                                data = {
-                                    "state": "OFF",
-                                    "functions": value["functions"],
-                                    "speed": value["speed"],
-                                    "direction": value["direction"],
-                                }
-                                if value["state"] == "on":
-                                    data["state"] = "ON"
-                                await client.publish(key, json.dumps(data))
+                async def queue_listener() -> None:
+                    while True:
+                        msg = await wt_to_mqtt.get()
+                        if msg["type"] == "power":
+                            state["power"] = {"type": "power", "state": msg["state"]}
+                            if state["power"] == "on":
+                                await client.publish(
+                                    f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+                                    json.dumps({"state": "ON"}),
+                                )
+                            else:
+                                await client.publish(
+                                    f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
+                                    json.dumps({"state": "OFF"}),
+                                )
+                        elif msg["type"] == "train":
+                            if msg["address"] not in state:
+                                state[msg["address"]] = {"type": "train", "name": msg["name"], "state": "OFF"}
+                                await publish_entities(client)
+                            if "state" in msg:
+                                state[msg["address"]]["state"] = msg["state"]
+                            if "speed" in msg:
+                                state[msg["address"]]["speed"] = msg["speed"]
+                            if "direction" in msg:
+                                state[msg["address"]]["direction"] = msg["direction"]
+                            if "functions" in msg:
+                                if "functions" not in state[msg["address"]]:
+                                    state[msg["address"]]["functions"] = msg["functions"]
+                                else:
+                                    for fn_key, fn_value in msg["functions"].items():
+                                        if fn_key in state[msg["address"]]["functions"]:
+                                            state[msg["address"]]["functions"][fn_key]["state"] = fn_value["state"]
+                            await publish_full_state(client, msg["address"])
+                        else:
+                            logger.debug(msg)
 
-                await state_manager.add_listener(state_listener)
+                queue_listener_task = asyncio.create_task(queue_listener())
 
                 await client.subscribe("mrfatcontroller/status")
                 await client.subscribe(
                     f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set"
                 )
+                await client.subscribe("mrfatcontroller/train/+/set")
                 async for message in client.messages:
                     if message.topic.value == "mrfatcontroller/status":
                         if message.payload.decode("utf-8") == "online":  # type: ignore
                             await publish_entities(client)
-                            await state_listener(state_manager.state, None)
                     elif (
                         message.topic.value
                         == f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/set"
                     ):
                         data = json.loads(message.payload)  # type: ignore
                         if data["state"] == "ON":
-                            await state_manager.update_state("power", {"state": "ON"})
+                            await mqtt_to_wt.put({"type": "power", "state": "on"})
                         else:
-                            await state_manager.update_state("power", {"state": "OFF"})
+                            await mqtt_to_wt.put({"type": "power", "state": "off"})
+                    elif message.topic.value.startswith("mrfatcontroller/train/"):
+                        _, _, address, _ = message.topic.value.split("/")
+                        if address in state:
+                            data = json.loads(message.payload)  # type:ignore
+                            if "speed" in data:
+                                await mqtt_to_wt.put({"type": "train", "address": address, "speed": data["speed"]})
+                            if "direction" in data:
+                                await mqtt_to_wt.put(
+                                    {"type": "train", "address": address, "direction": data["direction"]}
+                                )
+                            if "functions" in data:
+                                await mqtt_to_wt.put(
+                                    {"type": "train", "address": address, "functions": data["functions"]}
+                                )
+                        else:
+                            logger.debug(f"Address {address} not found in state")
                     else:
-                        logger.debug(message.topic.value)
+                        logger.debug(f"Unknown topic {message.topic.value}")
+            if queue_listener_task is not None and not queue_listener_task.done():
+                queue_listener_task.cancel()
             await asyncio.sleep(10)
     except asyncio.CancelledError:
         logger.debug("MQTT client shutting down")
+        if queue_listener_task is not None and not queue_listener_task.done():
+            queue_listener_task.cancel()

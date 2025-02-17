@@ -19,10 +19,7 @@
   const deleteEntity = createMutation({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/trains/" + entity.train, {
-        method: "PATCH",
-        body: JSON.stringify({
-          entity_id: entity.id,
-        }),
+        method: "DELETE",
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
