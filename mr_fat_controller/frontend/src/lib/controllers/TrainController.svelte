@@ -172,8 +172,14 @@
             }
           }}
         >
-          {#each Object.entries($state.train[train.id].functions) as [key, fnct]}
-            <Toolbar.GroupItem value={key}>{fnct.name}</Toolbar.GroupItem>
+          {#each Object.entries($state.train[train.id].functions) as [key, fnct], idx}
+            <Toolbar.GroupItem
+              value={key}
+              class={idx + 1 ===
+              Object.values($state.train[train.id].functions).length
+                ? "rounded-r"
+                : ""}>{fnct.name}</Toolbar.GroupItem
+            >
           {/each}
         </Toolbar.Group>
       </Toolbar.Root>
