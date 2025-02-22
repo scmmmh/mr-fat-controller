@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from mr_fat_controller.models import Signal, SignalModel, inject_db_session
 from mr_fat_controller.mqtt import full_state_refresh, recalculate_state
@@ -37,7 +37,9 @@ async def create_signal(data: CreateSignalModel, dbsession=Depends(inject_db_ses
 @router.get("", response_model=list[SignalModel])
 async def get_signals(dbsession=Depends(inject_db_session)) -> list[Signal]:
     """Get all signals."""
-    query = select(Signal).order_by(Signal.id).options(joinedload(Signal.entity))
+    query = (
+        select(Signal).order_by(Signal.id).options(joinedload(Signal.entity), selectinload(Signal.signal_automations))
+    )
     result = await dbsession.execute(query)
     return list(result.scalars())
 
@@ -45,7 +47,11 @@ async def get_signals(dbsession=Depends(inject_db_session)) -> list[Signal]:
 @router.get("/{sid}", response_model=SignalModel)
 async def get_signal(sid: int, dbsession=Depends(inject_db_session)) -> Signal:
     """Get a signal."""
-    query = select(Signal).filter(Signal.id == sid).options(joinedload(Signal.entity))
+    query = (
+        select(Signal)
+        .filter(Signal.id == sid)
+        .options(joinedload(Signal.entity), selectinload(Signal.signal_automations))
+    )
     signal = (await dbsession.execute(query)).scalar()
     if signal is not None:
         return signal
@@ -56,7 +62,11 @@ async def get_signal(sid: int, dbsession=Depends(inject_db_session)) -> Signal:
 @router.delete("/{sid}", status_code=204)
 async def delete_signal(sid: int, dbsession=Depends(inject_db_session)) -> None:
     """Delete a signal."""
-    query = select(Signal).filter(Signal.id == sid).options(joinedload(Signal.entity))
+    query = (
+        select(Signal)
+        .filter(Signal.id == sid)
+        .options(joinedload(Signal.entity), selectinload(Signal.signal_automations))
+    )
     signal = (await dbsession.execute(query)).scalar()
     if signal is not None:
         await dbsession.delete(signal)

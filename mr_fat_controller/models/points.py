@@ -3,11 +3,14 @@
 # SPDX-License-Identifier: MIT
 """Models for a single set of points."""
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer, Unicode
 from sqlalchemy.orm import relationship
 
 from mr_fat_controller.models.meta import Base
+from mr_fat_controller.models.util import object_to_model_id, objects_to_model_ids
 
 
 class Points(Base):
@@ -21,6 +24,7 @@ class Points(Base):
     diverge_state = Column(Unicode(255))
 
     entity = relationship("Entity", back_populates="points")
+    signal_automations = relationship("SignalAutomation", back_populates="points", cascade="all, delete-orphan")
 
 
 class PointsModel(BaseModel):
@@ -30,5 +34,8 @@ class PointsModel(BaseModel):
     entity_id: int
     through_state: str
     diverge_state: str
+
+    entity: Annotated[int, BeforeValidator(object_to_model_id)]
+    signal_automations: Annotated[list[int], BeforeValidator(objects_to_model_ids)]
 
     model_config = ConfigDict(from_attributes=True)

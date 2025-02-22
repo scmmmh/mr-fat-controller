@@ -158,7 +158,9 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
     async with (
         db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
     ):
-        query = select(BlockDetector).options(selectinload(BlockDetector.entity))
+        query = select(BlockDetector).options(
+            joinedload(BlockDetector.entity), selectinload(BlockDetector.signal_automations)
+        )
         result = await dbsession.execute(query)
         for block_detector in result.scalars():
             await state_manager.add_state(
@@ -169,7 +171,7 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                     "state": "unknown",
                 },
             )
-        query = select(Points).options(joinedload(Points.entity))
+        query = select(Points).options(joinedload(Points.entity), selectinload(Points.signal_automations))
         result = await dbsession.execute(query)
         for points in result.scalars():
             if points.entity.state_topic in state_manager:
@@ -186,7 +188,7 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                     },
                     notify=False,
                 )
-        query = select(PowerSwitch).options(selectinload(PowerSwitch.entity))
+        query = select(PowerSwitch).options(joinedload(PowerSwitch.entity))
         result = await dbsession.execute(query)
         for power_switch in result.scalars():
             if power_switch.entity.state_topic in state_manager:
@@ -205,7 +207,7 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                     },
                     notify=False,
                 )
-        query = select(Signal).options(selectinload(Signal.entity))
+        query = select(Signal).options(joinedload(Signal.entity), selectinload(Signal.signal_automations))
         result = await dbsession.execute(query)
         for signal in result.scalars():
             if signal.entity.state_topic in state_manager:
