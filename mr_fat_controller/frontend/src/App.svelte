@@ -11,14 +11,15 @@
   import PowerSwitchList from "./lib/lists/PowerSwitchList.svelte";
   import SignalList from "./lib/lists/SignalList.svelte";
   import StateSocketProvider from "./lib/providers/StateSocketProvider.svelte";
-  import EntitiesProvider from "./lib/providers/EntitiesProvider.svelte";
+  import DataProvider from "./lib/providers/DataProvider.svelte";
+  import TrainController from "./lib/controllers/TrainController.svelte";
 
   const client = new QueryClient();
 </script>
 
 <QueryClientProvider {client}>
   <StateSocketProvider>
-    <EntitiesProvider>
+    <DataProvider>
       <div class="flex flex-col w-screen h-screen overflow-hidden">
         <header
           class="flex flex-row items-center px-4 py-2 bg-emerald-700 text-white"
@@ -79,13 +80,14 @@
                   <PointsList />
                   <BlockDetectorList />
                   <SignalList />
+                  <TrainController />
+                  <TrainController />
                 </div>
               </Tabs.Content>
             </Tabs.Root>
           </div>
-          <div class="w-2/6"></div>
         </main>
       </div>
-    </EntitiesProvider>
+    </DataProvider>
   </StateSocketProvider>
 </QueryClientProvider>

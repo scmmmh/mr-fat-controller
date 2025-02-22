@@ -69,7 +69,7 @@ class StateManager:
                         obj["state"] = "danger"
                     elif "g" in data["color"] and data["color"]["g"] > SIGNAL_COLOUR_THRESHOLD:
                         obj["state"] = "clear"
-            elif obj["type"] == "decoder":
+            elif obj["type"] == "train":
                 if "state" in data:
                     if data["state"] == "ON":
                         obj["state"] = "on"

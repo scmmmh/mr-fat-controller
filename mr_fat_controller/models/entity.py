@@ -33,6 +33,7 @@ class Entity(Base):
     points = relationship("Points", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     power_switch = relationship("PowerSwitch", back_populates="entity", uselist=False, cascade="all, delete-orphan")
     signal = relationship("Signal", back_populates="entity", uselist=False, cascade="all, delete-orphan")
+    train = relationship("Train", back_populates="entity", uselist=False, cascade="all, delete-orphan")
 
 
 class EntityModel(BaseModel):
@@ -51,5 +52,6 @@ class EntityModel(BaseModel):
     points: Annotated[int | None, BeforeValidator(object_to_model_id)]
     power_switch: Annotated[int | None, BeforeValidator(object_to_model_id)]
     signal: Annotated[int | None, BeforeValidator(object_to_model_id)]
+    train: Annotated[int | None, BeforeValidator(object_to_model_id)]
 
     model_config = ConfigDict(from_attributes=True)

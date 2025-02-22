@@ -23,6 +23,7 @@ from mr_fat_controller.models.meta import Base, MetaData  # noqa: F401
 from mr_fat_controller.models.points import Points, PointsModel  # noqa: F401
 from mr_fat_controller.models.power_switch import PowerSwitch, PowerSwitchModel  # noqa: F401
 from mr_fat_controller.models.signal import Signal, SignalModel  # noqa: F401
+from mr_fat_controller.models.train import Train, TrainModel  # noqa:F401
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)

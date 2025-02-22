@@ -25,6 +25,7 @@ async def get_entities(dbsession=Depends(inject_db_session)) -> list[Entity]:
             selectinload(Entity.points),
             selectinload(Entity.power_switch),
             selectinload(Entity.signal),
+            selectinload(Entity.train),
         )
     )
     result = await dbsession.execute(query)

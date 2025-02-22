@@ -26,6 +26,8 @@ from mr_fat_controller.models import (
     PowerSwitchModel,
     Signal,
     SignalModel,
+    Train,
+    TrainModel,
     db_session,
 )
 from mr_fat_controller.settings import settings
@@ -225,6 +227,26 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                         "type": "signal",
                         "model": SignalModel.model_validate(signal).model_dump(),
                         "state": "unknown",
+                    },
+                    notify=False,
+                )
+        query = select(Train).options(selectinload(Train.entity))
+        result = await dbsession.execute(query)
+        for train in result.scalars():
+            if train.entity.state_topic in state_manager:
+                await state_manager.update_model(
+                    train.entity.state_topic, TrainModel.model_validate(train).model_dump(), notify=False
+                )
+            else:
+                await state_manager.add_state(
+                    train.entity.state_topic,
+                    {
+                        "type": "train",
+                        "model": TrainModel.model_validate(train).model_dump(),
+                        "state": "on",
+                        "speed": 0,
+                        "direction": "forward",
+                        "functions": {},
                     },
                     notify=False,
                 )

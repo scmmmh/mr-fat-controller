@@ -26,8 +26,10 @@ async def withrottle_mqtt_bridge():
 
     asyncio.get_running_loop().add_signal_handler(signal.SIGINT, sigint_handler)
 
-    wt_client_task = asyncio.create_task(withrottle_client())
-    mqtt_client_task = asyncio.create_task(mqtt_client())
+    wt_to_mqtt = asyncio.Queue()
+    mqtt_to_wt = asyncio.Queue()
+    wt_client_task = asyncio.create_task(withrottle_client(wt_to_mqtt, mqtt_to_wt))
+    mqtt_client_task = asyncio.create_task(mqtt_client(wt_to_mqtt, mqtt_to_wt))
 
     await asyncio.gather(wt_client_task, mqtt_client_task)
 

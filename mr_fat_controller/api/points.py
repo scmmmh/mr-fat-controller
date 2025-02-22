@@ -45,6 +45,7 @@ async def get_all_points(dbsession=Depends(inject_db_session)) -> list[Points]:
         select(Points)
         .order_by(Points.id)
         .options(
+            joinedload(Points.entity),
             joinedload(Points.diverge_signal),
             joinedload(Points.root_signal),
             joinedload(Points.through_signal),
@@ -64,6 +65,7 @@ async def get_points(pid: int, dbsession=Depends(inject_db_session)) -> Points:
         select(Points)
         .filter(Points.id == pid)
         .options(
+            joinedload(Points.entity),
             joinedload(Points.diverge_signal),
             joinedload(Points.root_signal),
             joinedload(Points.through_signal),
@@ -100,6 +102,7 @@ async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_
         select(Points)
         .filter(Points.id == pid)
         .options(
+            joinedload(Points.entity),
             joinedload(Points.diverge_signal),
             joinedload(Points.root_signal),
             joinedload(Points.through_signal),
@@ -123,5 +126,30 @@ async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_
         await dbsession.refresh(points)
         await recalculate_state()
         return points
+    else:
+        raise HTTPException(404)
+
+
+@router.delete("/{pid}", status_code=204)
+async def delete_points(pid: int, dbsession=Depends(inject_db_session)) -> None:
+    """DElete a single set of points."""
+    query = (
+        select(Points)
+        .filter(Points.id == pid)
+        .options(
+            joinedload(Points.entity),
+            joinedload(Points.diverge_signal),
+            joinedload(Points.root_signal),
+            joinedload(Points.through_signal),
+            joinedload(Points.diverge_block_detector),
+            joinedload(Points.root_block_detector),
+            joinedload(Points.through_block_detector),
+        )
+    )
+    result = await dbsession.execute(query)
+    points = result.scalar()
+    if points is not None:
+        await dbsession.delete(points)
+        await dbsession.commit()
     else:
         raise HTTPException(404)

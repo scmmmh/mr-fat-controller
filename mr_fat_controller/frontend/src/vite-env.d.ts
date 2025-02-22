@@ -22,7 +22,8 @@ type Entity = {
   block_detector: number | null,
   points: number | null,
   power_switch: number | null,
-  signal: number | null
+  signal: number | null,
+  train: number | null,
 };
 
 type BlockDetector = {
@@ -73,11 +74,30 @@ type SignalState = {
   state: "off" | "danger" | "clear" | "unknown",
 };
 
+type Train = {
+  id: number,
+  entity: number,
+};
+
+type TrainState = {
+  model: Train,
+  state: "on" | "off",
+  speed: number,
+  direction: "forward" | "reverse",
+  functions: { [key: string]: TrainFunctionState },
+};
+
+type TrainFunctionState = {
+  state: "on" | "off",
+  name: string,
+};
+
 type State = {
   block_detector: { [key: number]: BlockDetectorState },
   points: { [key: number]: PointsState },
   power_switch: { [key: number]: PowerSwitchState },
   signal: { [key: number]: SignalState },
+  train: { [key: number]: TrainState },
 };
 
 type PointsStatePayload = {
@@ -107,6 +127,21 @@ type SetPowerSwitchMessage = {
   payload: { id: number, state: "on" | "off" },
 };
 
-type StateMessage = FullStateMessage | SetPointsMessage | SetPowerSwitchMessage;
+type SetReverserMessage = {
+  type: "set-reverser",
+  payload: { id: number, state: "forward" | "reverse" },
+}
+
+type SetSpeedMessage = {
+  type: "set-speed",
+  payload: { id: number, state: number },
+}
+
+type ToggleDecoderFunctionMessage = {
+  type: "toggle-decoder-function",
+  payload: { id: number, state: string },
+}
+
+type StateMessage = FullStateMessage | SetPointsMessage | SetPowerSwitchMessage | SetReverserMessage | SetSpeedMessage | ToggleDecoderFunctionMessage;
 
 type SendStateMessageFunction = (msg: StateMessage) => void;
