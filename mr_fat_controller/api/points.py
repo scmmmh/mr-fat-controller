@@ -41,19 +41,7 @@ async def create_points(data: CreatePointsModel, dbsession=Depends(inject_db_ses
 @router.get("", response_model=list[PointsModel])
 async def get_all_points(dbsession=Depends(inject_db_session)) -> list[Points]:
     """Return all points."""
-    query = (
-        select(Points)
-        .order_by(Points.id)
-        .options(
-            joinedload(Points.entity),
-            joinedload(Points.diverge_signal),
-            joinedload(Points.root_signal),
-            joinedload(Points.through_signal),
-            joinedload(Points.diverge_block_detector),
-            joinedload(Points.root_block_detector),
-            joinedload(Points.through_block_detector),
-        )
-    )
+    query = select(Points).order_by(Points.id).options(joinedload(Points.entity))
     result = await dbsession.execute(query)
     return list(result.scalars())
 
@@ -61,19 +49,7 @@ async def get_all_points(dbsession=Depends(inject_db_session)) -> list[Points]:
 @router.get("/{pid}", response_model=PointsModel)
 async def get_points(pid: int, dbsession=Depends(inject_db_session)) -> Points:
     """Return a single set of points."""
-    query = (
-        select(Points)
-        .filter(Points.id == pid)
-        .options(
-            joinedload(Points.entity),
-            joinedload(Points.diverge_signal),
-            joinedload(Points.root_signal),
-            joinedload(Points.through_signal),
-            joinedload(Points.diverge_block_detector),
-            joinedload(Points.root_block_detector),
-            joinedload(Points.through_block_detector),
-        )
-    )
+    query = select(Points).filter(Points.id == pid).options(joinedload(Points.entity))
     result = await dbsession.execute(query)
     points = result.scalar()
     if points is not None:
@@ -87,41 +63,17 @@ class PatchPointsModel(BaseModel):
 
     diverge_state: str
     through_state: str
-    diverge_signal: int | None
-    root_signal: int | None
-    through_signal: int | None
-    diverge_block_detector: int | None
-    root_block_detector: int | None
-    through_block_detector: int | None
 
 
 @router.put("/{pid}", response_model=PointsModel)
 async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_db_session)) -> Points:
     """Update a single set of points."""
-    query = (
-        select(Points)
-        .filter(Points.id == pid)
-        .options(
-            joinedload(Points.entity),
-            joinedload(Points.diverge_signal),
-            joinedload(Points.root_signal),
-            joinedload(Points.through_signal),
-            joinedload(Points.diverge_block_detector),
-            joinedload(Points.root_block_detector),
-            joinedload(Points.through_block_detector),
-        )
-    )
+    query = select(Points).filter(Points.id == pid).options(joinedload(Points.entity))
     result = await dbsession.execute(query)
     points = result.scalar()
     if points is not None:
         points.diverge_state = data.diverge_state
         points.through_state = data.through_state
-        points.diverge_signal_id = data.diverge_signal
-        points.root_signal_id = data.root_signal
-        points.through_signal_id = data.through_signal
-        points.diverge_block_detector_id = data.diverge_block_detector
-        points.root_block_detector_id = data.root_block_detector
-        points.through_block_detector_id = data.through_block_detector
         await dbsession.commit()
         await dbsession.refresh(points)
         await recalculate_state()
@@ -133,19 +85,7 @@ async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_
 @router.delete("/{pid}", status_code=204)
 async def delete_points(pid: int, dbsession=Depends(inject_db_session)) -> None:
     """DElete a single set of points."""
-    query = (
-        select(Points)
-        .filter(Points.id == pid)
-        .options(
-            joinedload(Points.entity),
-            joinedload(Points.diverge_signal),
-            joinedload(Points.root_signal),
-            joinedload(Points.through_signal),
-            joinedload(Points.diverge_block_detector),
-            joinedload(Points.root_block_detector),
-            joinedload(Points.through_block_detector),
-        )
-    )
+    query = select(Points).filter(Points.id == pid).options(joinedload(Points.entity))
     result = await dbsession.execute(query)
     points = result.scalar()
     if points is not None:
