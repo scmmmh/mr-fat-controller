@@ -164,7 +164,7 @@
     </div>
 
     {#if $signalAutomations.isSuccess}
-      <ul class="flex-1 overflow-auto space-y-1 pr-2">
+      <ul class="flex-1 overflow-auto space-y-1">
         {#each $signalAutomations.data as signalAutomation}
           <li class="flex flex-row space-x-4 items-center">
             <SignalAutomationEditor {signalAutomation} />

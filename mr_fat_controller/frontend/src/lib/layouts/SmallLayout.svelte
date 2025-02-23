@@ -2,7 +2,6 @@
   import { Tabs } from "bits-ui";
   import {
     mdiDevices,
-    mdiFence,
     mdiRailroadLight,
     mdiSourceBranch,
     mdiTrain,
@@ -21,7 +20,7 @@
   <h1 class="sr-only">Model Railway Fat Controller</h1>
   <div class="w-full h-full overflow-hidden">
     <Tabs.Root
-      value="trains"
+      value="devices"
       orientation="horizontal"
       class="flex flex-col h-full"
     >
