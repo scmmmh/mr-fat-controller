@@ -17,7 +17,7 @@
   <h2 class="text-xl font-bold mb-2">Entities</h2>
 
   {#if $entities.isSuccess}
-    <ul class="flex-1 overflow-auto space-y-1 pr-2">
+    <ul class="flex-1 overflow-auto space-y-1">
       {#each $entities.data as entity}
         <li class="flex flex-row space-x-4 items-center">
           {#if entity.points !== null}

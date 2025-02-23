@@ -52,9 +52,9 @@
   }
 </script>
 
-<div class="flex flex-col overflow-hidden">
+<div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
   <div class="flex flex-row space-x-4 mb-2">
-    <h2 class="flex-1 text-xl font-bold">
+    <h2 class="flex-1 text-xl font-bold truncate">
       {#if train !== null}{$entitiesDict[train.entity].name}{:else}Select Train{/if}
     </h2>
     <Dialog.Root>
@@ -110,105 +110,108 @@
     </Dialog.Root>
   </div>
 
-  <div class="flex-1">
-    {#if train != null && $state.train[train.id]}
-      <Toolbar.Root
-        class="flex-1 mb-4"
-        aria-label="{$entitiesDict[train.entity].name} actions"
+  {#if train != null && $state.train[train.id]}
+    <Toolbar.Root
+      class="flex-wrap mb-4"
+      aria-label="{$entitiesDict[train.entity].name} actions"
+    >
+      <Toolbar.Group
+        bind:value={$state.train[train.id].direction}
+        onValueChange={(value) => {
+          if (train) {
+            sendStateMessage({
+              type: "set-reverser",
+              payload: {
+                id: train.id,
+                state: value === "reverse" ? "reverse" : "forward",
+              },
+            });
+          }
+        }}
+        type="single"
+        class="w-full lg:w-auto"
       >
-        <Toolbar.Group
-          bind:value={$state.train[train.id].direction}
-          onValueChange={(value) => {
-            if (train) {
-              sendStateMessage({
-                type: "set-reverser",
-                payload: {
-                  id: train.id,
-                  state: value === "reverse" ? "reverse" : "forward",
-                },
-              });
-            }
-          }}
-          type="single"
+        <Toolbar.GroupItem
+          value="forward"
+          class="flex-1 rounded-tl lg:rounded-l"
+          aria-label="Reverser forward"
+          ><Icon
+            path={mdiArrowUp}
+            label="Reverser set to forward"
+          /></Toolbar.GroupItem
         >
+        <Toolbar.GroupItem
+          value="reverse"
+          aria-label="Reverser reverse"
+          class="flex-1 rounded-tr lg:rounded-none"
+          ><Icon
+            path={mdiArrowDown}
+            label="Reverser set to forward"
+          /></Toolbar.GroupItem
+        >
+      </Toolbar.Group>
+      <Separator.Root />
+      <Toolbar.Group
+        type="multiple"
+        bind:value={activeFunctions}
+        onValueChange={(values) => {
+          if (train && values) {
+            for (const value of values) {
+              if (activeFunctions.indexOf(value) < 0) {
+                sendStateMessage({
+                  type: "toggle-decoder-function",
+                  payload: { id: train.id, state: value },
+                });
+              }
+            }
+            for (const value of activeFunctions) {
+              if (values.indexOf(value) < 0) {
+                sendStateMessage({
+                  type: "toggle-decoder-function",
+                  payload: { id: train.id, state: value },
+                });
+              }
+            }
+          }
+        }}
+        class="w-full lg:w-auto flex-wrap"
+      >
+        {#each Object.entries($state.train[train.id].functions) as [key, fnct], idx}
           <Toolbar.GroupItem
-            value="forward"
-            class="rounded-l"
-            aria-label="Reverser forward"
-            ><Icon
-              path={mdiArrowUp}
-              label="Reverser set to forward"
-            /></Toolbar.GroupItem
+            value={key}
+            class="w-full lg:w-auto {idx + 1 ===
+            Object.values($state.train[train.id].functions).length
+              ? 'rounded-b lg:rounded-r'
+              : ''}">{fnct.name}</Toolbar.GroupItem
           >
-          <Toolbar.GroupItem value="reverse" aria-label="Reverser reverse"
-            ><Icon
-              path={mdiArrowDown}
-              label="Reverser set to forward"
-            /></Toolbar.GroupItem
-          >
-        </Toolbar.Group>
-        <Separator.Root />
-        <Toolbar.Group
-          type="multiple"
-          bind:value={activeFunctions}
-          onValueChange={(values) => {
-            if (train && values) {
-              for (const value of values) {
-                if (activeFunctions.indexOf(value) < 0) {
-                  sendStateMessage({
-                    type: "toggle-decoder-function",
-                    payload: { id: train.id, state: value },
-                  });
-                }
-              }
-              for (const value of activeFunctions) {
-                if (values.indexOf(value) < 0) {
-                  sendStateMessage({
-                    type: "toggle-decoder-function",
-                    payload: { id: train.id, state: value },
-                  });
-                }
-              }
-            }
-          }}
-        >
-          {#each Object.entries($state.train[train.id].functions) as [key, fnct], idx}
-            <Toolbar.GroupItem
-              value={key}
-              class={idx + 1 ===
-              Object.values($state.train[train.id].functions).length
-                ? "rounded-r"
-                : ""}>{fnct.name}</Toolbar.GroupItem
-            >
-          {/each}
-        </Toolbar.Group>
-      </Toolbar.Root>
-      <div>
-        <datalist id="{train.id}-speeds">
-          <option value="0"></option>
-          <option value="31"></option>
-          <option value="63"></option>
-          <option value="95"></option>
-          <option value="127"></option>
-        </datalist>
-        <input
-          type="range"
-          min="0"
-          max="127"
-          bind:value={$state.train[train.id].speed}
-          on:input={() => {
-            if (train !== null) {
-              sendStateMessage({
-                type: "set-speed",
-                payload: { id: train.id, state: $state.train[train.id].speed },
-              });
-            }
-          }}
-          list="{train.id}-speeds"
-          class="h-[60vh]"
-          style="writing-mode: sideways-lr;"
-        />
-      </div>
-    {/if}
-  </div>
+        {/each}
+      </Toolbar.Group>
+    </Toolbar.Root>
+    <div class="flex-1 text-center overflow-hidden">
+      <datalist id="{train.id}-speeds">
+        <option value="0"></option>
+        <option value="31"></option>
+        <option value="63"></option>
+        <option value="95"></option>
+        <option value="127"></option>
+      </datalist>
+      <input
+        type="range"
+        min="0"
+        max="127"
+        bind:value={$state.train[train.id].speed}
+        on:input={() => {
+          if (train !== null) {
+            sendStateMessage({
+              type: "set-speed",
+              payload: { id: train.id, state: $state.train[train.id].speed },
+            });
+          }
+        }}
+        list="{train.id}-speeds"
+        class="h-full"
+        style="writing-mode: sideways-lr;"
+      />
+    </div>
+  {/if}
 </div>
