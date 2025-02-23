@@ -52,7 +52,7 @@
   }
 </script>
 
-<div class="flex flex-col w-full h-full xl:w-auto xl:h-auto overflow-hidden">
+<div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
   <div class="flex flex-row space-x-4 mb-2">
     <h2 class="flex-1 text-xl font-bold truncate">
       {#if train !== null}{$entitiesDict[train.entity].name}{:else}Select Train{/if}
@@ -129,11 +129,11 @@
           }
         }}
         type="single"
-        class="w-full xl:w-auto"
+        class="w-full lg:w-auto"
       >
         <Toolbar.GroupItem
           value="forward"
-          class="flex-1 rounded-tl xl:rounded-l"
+          class="flex-1 rounded-tl lg:rounded-l"
           aria-label="Reverser forward"
           ><Icon
             path={mdiArrowUp}
@@ -143,7 +143,7 @@
         <Toolbar.GroupItem
           value="reverse"
           aria-label="Reverser reverse"
-          class="flex-1 rounded-tr xl:rounded-none"
+          class="flex-1 rounded-tr lg:rounded-none"
           ><Icon
             path={mdiArrowDown}
             label="Reverser set to forward"
@@ -174,14 +174,14 @@
             }
           }
         }}
-        class="w-full xl:w-auto flex-wrap"
+        class="w-full lg:w-auto flex-wrap"
       >
         {#each Object.entries($state.train[train.id].functions) as [key, fnct], idx}
           <Toolbar.GroupItem
             value={key}
-            class="w-full xl:w-auto {idx + 1 ===
+            class="w-full lg:w-auto {idx + 1 ===
             Object.values($state.train[train.id].functions).length
-              ? 'rounded-b xl:rounded-r'
+              ? 'rounded-b lg:rounded-r'
               : ''}">{fnct.name}</Toolbar.GroupItem
           >
         {/each}
