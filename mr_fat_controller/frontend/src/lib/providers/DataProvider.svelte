@@ -62,6 +62,16 @@
   const powerSwitches = createQuery(powerSwitchesQuery);
   setContext("powerSwitches", powerSwitches);
 
+  const signalAutomationsQuery = derived(entities, (entities) => {
+    return {
+      queryFn: queryFn<Entity[]>,
+      queryKey: ["signal-automations"],
+      enabled: entities.isSuccess,
+    };
+  });
+  const signalAutomations = createQuery(signalAutomationsQuery);
+  setContext("signalAutomations", signalAutomations);
+
   const signalsQuery = derived(entities, (entities) => {
     return {
       queryFn: queryFn<Entity[]>,

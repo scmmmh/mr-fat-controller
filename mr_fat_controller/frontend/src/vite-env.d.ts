@@ -28,7 +28,7 @@ type Entity = {
 
 type BlockDetector = {
   id: number,
-  entity_id: number,
+  entity: number,
 };
 
 type BlockDetectorState = {
@@ -38,15 +38,9 @@ type BlockDetectorState = {
 
 type Points = {
   id: number,
-  entity_id: number,
+  entity: number,
   through_state: string,
   diverge_state: string,
-  diverge_signal: number | null,
-  root_signal: number | null,
-  through_signal: number | null,
-  diverge_block_detector: number | null,
-  root_block_detector: number | null,
-  through_block_detector: number | null,
 };
 
 type PointsState = {
@@ -66,12 +60,21 @@ type PowerSwitchState = {
 
 type Signal = {
   id: number,
-  entity_id: number,
+  entity: number,
 };
 
 type SignalState = {
   model: Signal,
   state: "off" | "danger" | "clear" | "unknown",
+};
+
+type SignalAutomation = {
+  id: number,
+  name: string,
+  signal: number,
+  block_detector: number,
+  points: number | null,
+  points_state: string,
 };
 
 type Train = {

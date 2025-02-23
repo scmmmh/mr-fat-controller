@@ -40,7 +40,7 @@ export function useEntities() {
 }
 
 export function useEntitiesDict() {
-  return getContext("entitiesDict") as Readable<{[key: number]: Entity}>;
+  return getContext("entitiesDict") as Readable<{ [key: number]: Entity }>;
 }
 
 export function useBlockDetectors() {
@@ -53,6 +53,10 @@ export function usePoints() {
 
 export function usePowerSwitches() {
   return getContext("powerSwitches") as CreateQueryResult<PowerSwitch[], Error>;
+}
+
+export function useSignalAutomations() {
+  return getContext("signalAutomations") as CreateQueryResult<SignalAutomation[], Error>;
 }
 
 export function useSignals() {

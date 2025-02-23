@@ -10,6 +10,7 @@
   import PointsList from "./lib/lists/PointsList.svelte";
   import PowerSwitchList from "./lib/lists/PowerSwitchList.svelte";
   import SignalList from "./lib/lists/SignalList.svelte";
+  import SignalAutomationList from "./lib/lists/SignalAutomationList.svelte";
   import StateSocketProvider from "./lib/providers/StateSocketProvider.svelte";
   import DataProvider from "./lib/providers/DataProvider.svelte";
   import TrainController from "./lib/controllers/TrainController.svelte";
@@ -71,6 +72,7 @@
                 >
                   <DevicesList />
                   <EntitiesList />
+                  <SignalAutomationList />
                 </div>
               </Tabs.Content>
               <Tabs.Content value="elements" class="flex-1 overflow-hidden">

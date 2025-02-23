@@ -4,10 +4,6 @@ export default {
     "index.html",
     "src/**/*.svelte",
   ],
-  safelist: [
-    "w-6",
-    "h-6",
-  ],
   plugins: [],
   theme: {
     extend: {},

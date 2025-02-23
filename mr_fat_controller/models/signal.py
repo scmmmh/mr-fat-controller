@@ -4,11 +4,14 @@
 # SPDX-License-Identifier: MIT
 """Models for a single entity."""
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from mr_fat_controller.models.meta import Base
+from mr_fat_controller.models.util import object_to_model_id, objects_to_model_ids
 
 
 class Signal(Base):
@@ -20,6 +23,7 @@ class Signal(Base):
     entity_id = Column(Integer, ForeignKey("entities.id"))
 
     entity = relationship("Entity", back_populates="signal")
+    signal_automations = relationship("SignalAutomation", back_populates="signal", cascade="all, delete-orphan")
 
 
 class SignalModel(BaseModel):
@@ -27,5 +31,8 @@ class SignalModel(BaseModel):
 
     id: int
     entity_id: int
+
+    entity: Annotated[int, BeforeValidator(object_to_model_id)]
+    signal_automations: Annotated[list[int], BeforeValidator(objects_to_model_ids)]
 
     model_config = ConfigDict(from_attributes=True)
