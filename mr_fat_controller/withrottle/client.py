@@ -32,8 +32,10 @@ async def process_power_status(line: str, writer: asyncio.StreamWriter, wt_to_mq
     """Process the data of a power status line."""
     global power_initialised  # noqa: PLW0603
     if line == "PPA0":
+        power_initialised = True
         await wt_to_mqtt.put({"type": "power", "state": "off"})
     elif line == "PPA1":
+        power_initialised = True
         await wt_to_mqtt.put({"type": "power", "state": "on"})
     elif line == "PPA2" and not power_initialised:
         writer.write(b"PPA0\n")
