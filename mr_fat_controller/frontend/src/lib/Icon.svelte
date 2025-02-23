@@ -4,6 +4,11 @@
   export let size: string = "6";
   let cls: string = "";
   export { cls as class };
+  const iconSizes: { [key: string]: string } = {
+    "4": "w-4 h-4",
+    "6": "w-6 h-6",
+    "8": "w-8 h-8",
+  };
 </script>
 
 {#if path !== null}
@@ -12,7 +17,7 @@
     viewBox="0 0 24 24"
     aria-label={label}
     aria-hidden={label === null ? "true" : "false"}
-    class="inline-block w-{size} h-{size} fill-current {cls}"
+    class="inline-block {iconSizes[size]} fill-current {cls}"
   >
     <path d={path} />
   </svg>
