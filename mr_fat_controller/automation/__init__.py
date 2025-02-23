@@ -40,19 +40,29 @@ async def signal_automations(state: dict, change_topic: str | None) -> None:
             signal_topic = signal_automation.signal.entity.state_topic
             block_detector_topic = signal_automation.block_detector.entity.state_topic
             if signal_topic in state_manager and block_detector_topic in state_manager:
-                if state_manager.state[block_detector_topic]["state"] == "off":
-                    new_state = "clear"
                 if (
                     signal_automation.points is not None
                     and signal_automation.points.entity.state_topic in state_manager
                 ):
                     points_topic = signal_automation.points.entity.state_topic
-                    if state_manager.state[points_topic]["state"] != signal_automation.points_state:
-                        new_state = "danger"
-                if signal_topic not in signals or signals[signal_topic] == "clear":
-                    signals[signal_topic] = new_state
+                    if state_manager.state[points_topic]["state"] == signal_automation.points_state:
+                        if state_manager.state[block_detector_topic]["state"] == "off":
+                            new_state = "clear"
+                elif state_manager.state[block_detector_topic]["state"] == "off":
+                    new_state = "clear"
+                if signal_topic not in signals:
+                    signals[signal_topic] = [new_state]
+                else:
+                    signals[signal_topic].append(new_state)
     if len(signals) > 0:
         await asyncio.sleep(0.1)
+        for signal_topic, signal_state in list(signals.items()):
+            if len(signal_state) == 1:
+                signals[signal_topic] = signal_state[0]
+            elif "clear" in signal_state:
+                signals[signal_topic] = "clear"
+            else:
+                signals[signal_topic] = "danger"
         async with mqtt_client() as client:
             for signal_topic, signal_state in signals.items():
                 if signal_state == "danger":
