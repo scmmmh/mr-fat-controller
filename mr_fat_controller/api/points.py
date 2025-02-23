@@ -94,7 +94,7 @@ async def put_points(pid: int, data: PatchPointsModel, dbsession=Depends(inject_
 
 @router.delete("/{pid}", status_code=204)
 async def delete_points(pid: int, dbsession=Depends(inject_db_session)) -> None:
-    """DElete a single set of points."""
+    """Delete a single set of points."""
     query = (
         select(Points)
         .filter(Points.id == pid)

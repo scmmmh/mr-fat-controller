@@ -12,12 +12,17 @@ button {
     @apply flex flex-row;
 }
 
-[data-melt-toolbar-button], [data-melt-toolbar-group-item] {
+[data-melt-toolbar-button], [data-melt-toolbar-group-item], [data-melt-dialog-trigger] {
     @apply block transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1;
 }
 
+
 [data-melt-toolbar-group-item][aria-checked="true"], [data-melt-toolbar-group-item][aria-pressed="true"]{
     @apply bg-emerald-300 hover:text-black focus:text-black;
+}
+
+[data-melt-dialog-trigger] {
+    @apply rounded;
 }
 
 [data-melt-toolbar-button]:first-child {
@@ -30,4 +35,8 @@ button {
 
 [data-melt-toolbar] [data-melt-separator] {
     @apply border-l border-l-white;
+}
+
+select, input[type="text"] {
+    @apply block w-full px-4 py-2 rounded border border-gray-500;
 }

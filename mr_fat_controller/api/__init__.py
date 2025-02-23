@@ -15,6 +15,7 @@ from mr_fat_controller.api.devices import router as device_router
 from mr_fat_controller.api.entities import router as entities_router
 from mr_fat_controller.api.points import router as points_router
 from mr_fat_controller.api.power_switches import router as power_switches_router
+from mr_fat_controller.api.signal_automations import router as signal_automations_router
 from mr_fat_controller.api.signals import router as signals_router
 from mr_fat_controller.api.state import router as state_router
 from mr_fat_controller.api.trains import router as trains_router
@@ -27,6 +28,7 @@ router.include_router(device_router)
 router.include_router(entities_router)
 router.include_router(power_switches_router)
 router.include_router(points_router)
+router.include_router(signal_automations_router)
 router.include_router(signals_router)
 router.include_router(state_router)
 router.include_router(trains_router)

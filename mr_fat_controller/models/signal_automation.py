@@ -19,6 +19,7 @@ class SignalAutomation(Base):
     __tablename__ = "signal_automations"
 
     id = Column(Integer, primary_key=True)
+    name = Column(Unicode(255))
     signal_id = Column(Integer, ForeignKey("signals.id"))
     block_detector_id = Column(Integer, ForeignKey("block_detectors.id"))
     points_id = Column(Integer, ForeignKey("points.id"), nullable=True)
@@ -33,6 +34,7 @@ class SignalAutomationModel(BaseModel):
     """Model for returning a SignalAutomation."""
 
     id: int
+    name: str
     points_state: str
 
     signal: Annotated[int, BeforeValidator(object_to_model_id)]

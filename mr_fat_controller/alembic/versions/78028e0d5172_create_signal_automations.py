@@ -20,6 +20,7 @@ def upgrade() -> None:
     op.create_table(
         "signal_automations",
         Column("id", Integer, primary_key=True),
+        Column("name", Unicode(255)),
         Column("signal_id", Integer, ForeignKey("signals.id")),
         Column("block_detector_id", Integer, ForeignKey("block_detectors.id")),
         Column("points_id", Integer, ForeignKey("points.id"), nullable=True),
