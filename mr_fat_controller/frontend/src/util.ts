@@ -19,6 +19,10 @@ export async function queryFn<ResultType>({ queryKey }: { queryKey: string[] }):
   }
 }
 
+export function useLayout() {
+  return getContext("layout") as Readable<string>;
+}
+
 export function useState() {
   return getContext("state") as Writable<State>;
 }
