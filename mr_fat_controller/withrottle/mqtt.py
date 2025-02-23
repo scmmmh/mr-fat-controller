@@ -98,7 +98,7 @@ async def mqtt_client(wt_to_mqtt: asyncio.Queue, mqtt_to_wt: asyncio.Queue) -> N
                         msg = await wt_to_mqtt.get()
                         if msg["type"] == "power":
                             state["power"] = {"type": "power", "state": msg["state"]}
-                            if state["power"] == "on":
+                            if state["power"]["state"] == "on":
                                 await client.publish(
                                     f"mrfatcontroller/switch/{slugify(settings.withrottle.name)}-withrottle-power/state",
                                     json.dumps({"state": "ON"}),
