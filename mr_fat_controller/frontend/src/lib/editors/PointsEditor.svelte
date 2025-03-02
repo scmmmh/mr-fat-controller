@@ -57,7 +57,7 @@
 
   let editPoints = {
     id: -1,
-    entity_id: -1,
+    entity: -1,
     through_state: "OFF",
     diverge_state: "ON",
   } as Points;
