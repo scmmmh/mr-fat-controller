@@ -1,6 +1,12 @@
 <script lang="ts">
   import { Dialog, Separator, Toolbar } from "bits-ui";
-  import { mdiArrowDown, mdiArrowUp, mdiTrain } from "@mdi/js";
+  import {
+    mdiArrowDown,
+    mdiArrowUp,
+    mdiCarLightDimmed,
+    mdiDomeLight,
+    mdiTrain,
+  } from "@mdi/js";
   import { onDestroy } from "svelte";
 
   import Icon from "../Icon.svelte";
@@ -182,8 +188,16 @@
             class="w-full lg:w-auto {idx + 1 ===
             Object.values($state.train[train.id].functions).length
               ? 'rounded-b lg:rounded-r'
-              : ''}">{fnct.name}</Toolbar.GroupItem
+              : ''}"
           >
+            {#if fnct.name === "Headlight"}
+              <Icon path={mdiCarLightDimmed} label={fnct.name} />
+            {:else if fnct.name === "Interior Light"}
+              <Icon path={mdiDomeLight} label={fnct.name} />
+            {:else}
+              {fnct.name}
+            {/if}
+          </Toolbar.GroupItem>
         {/each}
       </Toolbar.Group>
     </Toolbar.Root>
