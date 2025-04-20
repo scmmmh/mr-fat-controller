@@ -35,7 +35,7 @@ async def create_points(data: CreatePointsModel, dbsession=Depends(inject_db_ses
     await dbsession.commit()
     await recalculate_state()
     await full_state_refresh()
-    return points
+    return await get_points(points.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
 
 
 @router.get("", response_model=list[PointsModel])

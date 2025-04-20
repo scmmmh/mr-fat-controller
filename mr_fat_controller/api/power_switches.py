@@ -22,7 +22,7 @@ class CreatePowerSwitchModel(BaseModel):
 
 
 @router.post("", response_model=PowerSwitchModel)
-async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_db_session)) -> PowerSwitch:
+async def create_power_switch(data: CreatePowerSwitchModel, dbsession=Depends(inject_db_session)) -> PowerSwitch:
     """Create a new power switch."""
     power_switch = PowerSwitch(
         entity_id=data.entity_id,
@@ -31,7 +31,7 @@ async def create_points(data: CreatePowerSwitchModel, dbsession=Depends(inject_d
     await dbsession.commit()
     await recalculate_state()
     await full_state_refresh()
-    return power_switch
+    return await get_power_switch(power_switch.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
 
 
 @router.get("", response_model=list[PowerSwitchModel])

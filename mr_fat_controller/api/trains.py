@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import selectinload
 
 from mr_fat_controller.models import Train, TrainModel, inject_db_session
 from mr_fat_controller.mqtt import full_state_refresh, recalculate_state
@@ -31,9 +31,7 @@ async def create_train(data: CreateTrainModel, dbsession=Depends(inject_db_sessi
     await dbsession.commit()
     await recalculate_state()
     await full_state_refresh()
-    query = select(Train).filter(Train.id == train.id).options(joinedload(Train.entity))
-    train = (await dbsession.execute(query)).scalar()
-    return train
+    return await get_train(train.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
 
 
 @router.get("", response_model=list[TrainModel])
