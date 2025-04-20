@@ -31,7 +31,7 @@ async def create_signal(data: CreateSignalModel, dbsession=Depends(inject_db_ses
     await dbsession.commit()
     await recalculate_state()
     await full_state_refresh()
-    return signal
+    return await get_signal(signal.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
 
 
 @router.get("", response_model=list[SignalModel])

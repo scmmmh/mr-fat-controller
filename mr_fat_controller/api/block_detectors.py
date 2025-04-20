@@ -31,7 +31,7 @@ async def create_block_detector(data: CreateBlockDetectorModel, dbsession=Depend
     await dbsession.commit()
     await recalculate_state()
     await full_state_refresh()
-    return block_detector
+    return await get_block_detector(block_detector.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
 
 
 @router.get("", response_model=list[BlockDetectorModel])
