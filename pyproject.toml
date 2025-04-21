@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-build-scripts"]
 build-backend = "hatchling.build"
 
 [project]
@@ -39,6 +39,33 @@ Source = "https://github.com/unknown/mr-fat-controller"
 
 [tool.hatch.version]
 path = "mr_fat_controller/__about__.py"
+
+[tool.hatch.build]
+artifacts = [
+  "mr_fat_controller/frontend/dist/**/*.*",
+]
+exclude = [
+  ".github",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  ".vscode",
+  "alembic.ini",
+  "build_hook.py",
+  "Containerfile",
+  "dev",
+  "node_modules",
+  "mr_fat_controller/frontend/*",
+  "mr_fat_controller/frontend/*.*",
+  "tests",
+]
+
+[tool.hatch.build.hooks.custom]
+path = "build_hook.py"
+commands = [
+  "cd mr_fat_controller/frontend",
+  "npm ci",
+  "vite build"
+]
 
 [tool.hatch.envs.default]
 dependencies = ["coverage[toml]>=6.5", "pytest", "ruff==0.9.4", "httpx"]
