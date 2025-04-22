@@ -45,3 +45,10 @@ jobs:
             containerfiles: |
               ./Containerfile
             platforms: linux/arm64/v8,linux/amd64
+
+      - name: Log in to docker.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: scmmmh
+          password: ${{ env.DOCKER_IO_TOKEN }}
+          registry: docker.io
