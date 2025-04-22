@@ -30,7 +30,7 @@ jobs:
 
       - name: Install Base Dependencies
         run: |
-          sudo apt-get install python3-venv pipx
+          sudo apt-get install python3-venv pipx qemu-user-static
           pipx install hatch
 
       - name: Build the python package
@@ -38,5 +38,10 @@ jobs:
           hatch build
 
       - name: Build the container image
-        run: |
-          echo "done"
+        uses: redhat-actions/buildah-build@v2
+        with:
+            image: docker.io/scmmmh/mr-fat-controller
+            tags: ${{ github.sha }}
+            containerfiles: |
+              ./Containerfile
+            platforms: linux/arm64/v8,linux/amd64
