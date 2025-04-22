@@ -37,14 +37,8 @@ jobs:
         run: |
           hatch build
 
-      - name: Log in to docker.io
-        uses: redhat-actions/podman-login@v1
-        with:
-          username: scmmmh
-          password: ${{ secrets.DOCKER_IO_TOKEN }}
-          registry: docker.io
-
       - name: Build the container image
+        id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
             image: docker.io/scmmmh/mr-fat-controller
@@ -52,3 +46,16 @@ jobs:
             containerfiles: |
               ./Containerfile
             platforms: linux/arm64/v8,linux/amd64
+
+      - name: Log in to docker.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: scmmmh
+          password: ${{ secrets.DOCKER_IO_TOKEN }}
+          registry: docker.io
+
+      - name: Push the container image to docker.io
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
