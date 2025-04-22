@@ -41,7 +41,7 @@ jobs:
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
-            image: docker.io/scmmmh/mr-fat-controller
+            image: scmmmh/mr-fat-controller
             tags: ${{ github.sha }}
             containerfiles: |
               ./Containerfile
