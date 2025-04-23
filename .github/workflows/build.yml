@@ -2,8 +2,7 @@ name: Build
 
 on:
   push:
-    # tags: [ "v*" ]
-    branches: [ "build/core" ]
+    tags: [ "v*b*" ]
 
 jobs:
   build-release:
@@ -37,21 +36,30 @@ jobs:
         run: |
           hatch build
 
+      - name: Determine the release tag
+        run: |
+          echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "MAJOR_MINOR_PATCH=${VERSION:1}" >> $GITHUB_ENV
+      # - uses: winterjung/split@v2
+      #   id: split
+      #   with:
+      #     msg: ${{ }}
+
       - name: Build the container image
         id: build-image
         uses: redhat-actions/buildah-build@v2
         with:
             image: scmmmh/mr-fat-controller
-            tags: ${{ github.sha }}
+            tags: ${{ env.MAJOR_MINOR_PATCH }}
             containerfiles: |
               ./Containerfile
             platforms: linux/arm64/v8,linux/amd64
 
-      - name: Push the container image to docker.io
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
-          registry: docker.io
-          username: scmmmh
-          password: ${{ secrets.DOCKER_IO_TOKEN }}
+      # - name: Push the container image to docker.io
+      #   uses: redhat-actions/push-to-registry@v2
+      #   with:
+      #     image: ${{ steps.build-image.outputs.image }}
+      #     tags: ${{ steps.build-image.outputs.tags }}
+      #     registry: docker.io
+      #     username: scmmmh
+      #     password: ${{ secrets.DOCKER_IO_TOKEN }}
