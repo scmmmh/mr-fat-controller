@@ -25,9 +25,7 @@ jobs:
         id: strip-prefix
         run: |
           STRIPPED=${{ github.ref_name }}
-          echo $STRIPPED
-          STRIPPED=${VERSION:1}
-          echo $STRIPPED
+          STRIPPED="${STRIPPED:1}"
           echo "result=$STRIPPED" >> "$GITHUB_OUTPUT"
 
       - name: Add .local path
