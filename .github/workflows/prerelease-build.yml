@@ -21,6 +21,13 @@ jobs:
           node-version: |
             20
 
+      - name: Strip version prefix
+        id: strip-prefix
+        run: |
+          STRIPPED=${{ github.ref_name }}
+          STRIPPED=${VERSION:1}
+          echo "result=$STRIPPED" >> $GITHUB_OUTPUT
+
       - name: Add .local path
         run: |
           echo "PATH=$HOME/.local/bin:$PATH" >> $GITHUB_ENV
@@ -35,18 +42,6 @@ jobs:
       - name: Build the python package
         run: |
           hatch build
-
-      - name: Strip version prefix
-        id: strip-prefix
-        run: |
-          STRIPPED=${{ github.ref_name }}
-          STRIPPED=${VERSION:1}
-          echo "result=$STRIPPED" >> $GITHUB_OUTPUT
-
-      # - uses: winterjung/split@v2
-      #   id: split
-      #   with:
-      #     msg: ${{ }}
 
       - name: Build the container image
         id: build-image
