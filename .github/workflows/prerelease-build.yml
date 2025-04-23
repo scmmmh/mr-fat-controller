@@ -41,7 +41,7 @@ jobs:
         run: |
           STRIPPED=${{ github.ref_name }}
           STRIPPED=${VERSION:1}
-          echo "::set-output name=result::$STRIPPED"
+          echo "result=$STRIPPED" >> $GITHUB_OUTPUT
 
       # - uses: winterjung/split@v2
       #   id: split
