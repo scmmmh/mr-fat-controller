@@ -5,7 +5,7 @@ on:
     tags: [ "v*b*", "v*a*" ]
 
 jobs:
-  build-release:
+  build-prerelease:
     runs-on: ubuntu-latest
 
     steps:
