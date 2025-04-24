@@ -87,22 +87,38 @@
             class="flex-1 flex flex-col overflow-hidden gap-4"
           >
             <div class="flex-1 px-4 py-2">
-              <label class="block">
-                <span class="block text-sm font-bold mb-1">Active train</span>
-                <select
-                  bind:value={train}
-                  class="block px-4 py-2 border border-black rounded"
-                >
-                  <option value={null}>No active train</option>
-                  {#if $trains.isSuccess}
-                    {#each $trains.data as item}
-                      <option value={item}
-                        >{$entitiesDict[item.entity].name}</option
-                      >
-                    {/each}
-                  {/if}
-                </select>
-              </label>
+              {#if $trains.isSuccess}
+                {#if $trains.data.length > 5}
+                  <label class="block">
+                    <span class="block text-sm font-bold mb-1"
+                      >Active train</span
+                    >
+                    <select
+                      bind:value={train}
+                      class="block px-4 py-2 border border-black rounded"
+                    >
+                      <option value={null}>No active train</option>
+                      {#each $trains.data as item}
+                        <option value={item}
+                          >{$entitiesDict[item.entity].name}</option
+                        >
+                      {/each}
+                    </select>
+                  </label>
+                {:else}
+                  <span class="block text-sm font-bold mb-1">Active train</span>
+                  <label class="block mb-2">
+                    <input type="radio" bind:group={train} value={null} />
+                    <span>No active train</span>
+                  </label>
+                  {#each $trains.data as item}
+                    <label class="block mb-2">
+                      <input type="radio" bind:group={train} value={item} />
+                      <span>{$entitiesDict[item.entity].name}</span>
+                    </label>
+                  {/each}
+                {/if}
+              {/if}
             </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
