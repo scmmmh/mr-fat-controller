@@ -4,6 +4,8 @@ on:
   push:
     tags: [ "v*.*.*" ]
 
+permissions: read-all
+
 jobs:
   build-release:
     runs-on: ubuntu-latest
