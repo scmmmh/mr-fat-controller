@@ -43,7 +43,7 @@ jobs:
           npm run build
 
       - name: Start the database backend
-        uses: hoverkraft-tech/compose-action@v2.2.0
+        uses: hoverkraft-tech/compose-action@v2.3.0
         with:
           compose-file: "./tests/docker-compose.yaml"
 
