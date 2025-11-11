@@ -15,12 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: |
             3.11
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: |
             20
@@ -43,7 +43,7 @@ jobs:
           npm run build
 
       - name: Start the database backend
-        uses: hoverkraft-tech/compose-action@v2.3.0
+        uses: hoverkraft-tech/compose-action@v2.4.1
         with:
           compose-file: "./tests/docker-compose.yaml"
 
