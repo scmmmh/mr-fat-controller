@@ -46,7 +46,7 @@
 
   const createSignalAutomation = createMutation({
     mutationFn: async (signalAutomation: SignalAutomation) => {
-      const response = await window.fetch("/api/signal-automations/", {
+      const response = await window.fetch("/api/signal-automations", {
         method: "POST",
         headers: {
           Accept: "application/json",
