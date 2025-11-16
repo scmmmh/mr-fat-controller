@@ -5,12 +5,16 @@
 
   import Icon from "../Icon.svelte";
 
-  export let entity: Entity;
+  type PowerSwitchEditorProps = {
+    entity: Entity;
+  };
+
+  const { entity }: PowerSwitchEditorProps = $props();
 
   const queryClient = useQueryClient();
-  let deleteDialogOpen = false;
+  let deleteDialogOpen = $state(false);
 
-  const deleteEntity = createMutation({
+  const deleteEntity = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch(
         "/api/power-switches/" + entity.power_switch,
@@ -27,7 +31,7 @@
         deleteDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 <Icon path={mdiPowerPlug} />
@@ -36,7 +40,7 @@
 
 <Toolbar.Root class="flex-1 justify-end" aria-label="{entity.name} actions">
   <Toolbar.Button
-    on:click={() => {
+    onclick={() => {
       deleteDialogOpen = true;
     }}
     ><Icon
@@ -57,9 +61,9 @@
         >Confirm deleting</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $deleteEntity.mutate(entity);
+          deleteEntity.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -78,11 +82,11 @@
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$deleteEntity.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteEntity.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$deleteEntity.isPending}
-            >{#if $deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
+            disabled={deleteEntity.isPending}
+            >{#if deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
           >
         </div>
       </form>

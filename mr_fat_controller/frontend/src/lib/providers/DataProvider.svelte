@@ -1,96 +1,56 @@
 <script lang="ts">
   import { setContext } from "svelte";
-  import { derived, type Readable } from "svelte/store";
   import { createQuery } from "@tanstack/svelte-query";
 
-  import { queryFn } from "../../util";
+  const { children } = $props();
 
-  const devices = createQuery({
-    queryFn: queryFn<Device[]>,
+  const devices = createQuery<Device[]>(() => ({
     queryKey: ["devices"],
     refetchInterval: 60000,
-  });
+  }));
   setContext("devices", devices);
 
-  const entities = createQuery({
-    queryFn: queryFn<Entity[]>,
+  const entities = createQuery<Entity[]>(() => ({
     queryKey: ["entities"],
     refetchInterval: 60000,
-  });
+  }));
   setContext("entities", entities);
 
-  const entitiesDict = derived(entities, (entities) => {
-    if (entities.isSuccess) {
-      return Object.fromEntries(
-        entities.data.map((entity) => {
-          return [entity.id, entity];
-        }),
-      );
-    } else {
-      return {};
-    }
-  }) as Readable<{ [key: number]: Entity }>;
-  setContext("entitiesDict", entitiesDict);
-
-  const blockDetectorsQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["block-detectors"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const blockDetectors = createQuery(blockDetectorsQuery);
+  const blockDetectors = createQuery<BlockDetector>(() => ({
+    queryKey: ["block-detectors"],
+    enabled: entities.isSuccess,
+  }));
   setContext("blockDetectors", blockDetectors);
 
-  const pointsQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["points"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const points = createQuery(pointsQuery);
+  const points = createQuery<Points[]>(() => ({
+    queryKey: ["points"],
+    enabled: entities.isSuccess,
+  }));
   setContext("points", points);
 
-  const powerSwitchesQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["power-switches"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const powerSwitches = createQuery(powerSwitchesQuery);
+  const powerSwitches = createQuery<PowerSwitch[]>(() => ({
+    queryKey: ["power-switches"],
+    enabled: entities.isSuccess,
+  }));
   setContext("powerSwitches", powerSwitches);
 
-  const signalAutomationsQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["signal-automations"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const signalAutomations = createQuery(signalAutomationsQuery);
+  const signalAutomations = createQuery<SignalAutomation>(() => ({
+    queryKey: ["signal-automations"],
+    enabled: entities.isSuccess,
+  }));
   setContext("signalAutomations", signalAutomations);
 
-  const signalsQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["signals"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const signals = createQuery(signalsQuery);
+  const signals = createQuery<Signal[]>(() => ({
+    queryKey: ["signals"],
+    enabled: entities.isSuccess,
+  }));
   setContext("signals", signals);
 
-  const trainsQuery = derived(entities, (entities) => {
-    return {
-      queryFn: queryFn<Entity[]>,
-      queryKey: ["trains"],
-      enabled: entities.isSuccess,
-    };
-  });
-  const trains = createQuery(trainsQuery);
+  const trains = createQuery<Train[]>(() => ({
+    queryKey: ["trains"],
+    enabled: entities.isSuccess,
+  }));
   setContext("trains", trains);
 </script>
 
-<slot></slot>
+{@render children()}

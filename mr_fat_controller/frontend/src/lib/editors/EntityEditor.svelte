@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    Button,
-    Dialog,
-    Label,
-    RadioGroup,
-    Separator,
-    Toolbar,
-  } from "bits-ui";
+  import { Dialog, Label, RadioGroup, Separator, Toolbar } from "bits-ui";
   import {
     mdiChip,
     mdiElectricSwitch,
@@ -23,22 +16,22 @@
   import { createMutation, useQueryClient } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { useEntitiesDict, useTrains } from "../../util";
 
-  export let entity: Entity;
+  type EntityEditorProps = {
+    entity: Entity;
+  };
+
+  const { entity }: EntityEditorProps = $props();
 
   const queryClient = useQueryClient();
-  let deleteDialogOpen = false;
-  let connectPointsDialogOpen = false;
-  let connectPowerDialogOpen = false;
-  let connectBlockDetectorDialogOpen = false;
-  let connectSignalDialogOpen = false;
-  let connectTrainDialogOpen = false;
+  let deleteDialogOpen = $state(false);
+  let connectPointsDialogOpen = $state(false);
+  let connectPowerDialogOpen = $state(false);
+  let connectBlockDetectorDialogOpen = $state(false);
+  let connectSignalDialogOpen = $state(false);
+  let connectTrainDialogOpen = $state(false);
 
-  const trains = useTrains();
-  const entitiesDict = useEntitiesDict();
-
-  const deleteEntity = createMutation({
+  const deleteEntity = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/entities/" + entity.id, {
         method: "DELETE",
@@ -55,10 +48,10 @@
         deleteDialogOpen = false;
       }
     },
-  });
+  }));
 
-  let newPointsMode: "OFF" | "ON" = "OFF";
-  const connectAsPoints = createMutation({
+  let newPointsMode: "OFF" | "ON" = $state("OFF");
+  const connectAsPoints = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/points", {
         method: "POST",
@@ -78,9 +71,9 @@
         connectPointsDialogOpen = false;
       }
     },
-  });
+  }));
 
-  const connectAsPower = createMutation({
+  const connectAsPower = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/power-switches", {
         method: "POST",
@@ -98,9 +91,9 @@
         connectPowerDialogOpen = false;
       }
     },
-  });
+  }));
 
-  const connectAsBlockDetector = createMutation({
+  const connectAsBlockDetector = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/block-detectors", {
         method: "POST",
@@ -118,9 +111,9 @@
         connectBlockDetectorDialogOpen = false;
       }
     },
-  });
+  }));
 
-  const connectAsSignal = createMutation({
+  const connectAsSignal = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/signals", {
         method: "POST",
@@ -138,48 +131,27 @@
         connectSignalDialogOpen = false;
       }
     },
-  });
+  }));
 
-  let newTrainName = "";
-  let newTrainExtend = "";
-  const connectAsTrain = createMutation({
+  const connectAsTrain = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
-      if (newTrainExtend === "") {
-        const response = await window.fetch("/api/trains", {
-          method: "POST",
-          body: JSON.stringify({
-            entity_id: entity.id,
-            name: newTrainName,
-          }),
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          queryClient.invalidateQueries({ queryKey: ["entities"] });
-          queryClient.invalidateQueries({ queryKey: ["trains"] });
-          connectTrainDialogOpen = false;
-        }
-      } else {
-        const response = await window.fetch("/api/trains/" + newTrainExtend, {
-          method: "PATCH",
-          body: JSON.stringify({
-            entity_id: entity.id,
-          }),
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          queryClient.invalidateQueries({ queryKey: ["entities"] });
-          queryClient.invalidateQueries({ queryKey: ["trains"] });
-          connectTrainDialogOpen = false;
-        }
+      const response = await window.fetch("/api/trains", {
+        method: "POST",
+        body: JSON.stringify({
+          entity_id: entity.id,
+        }),
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ["entities"] });
+        queryClient.invalidateQueries({ queryKey: ["trains"] });
+        connectTrainDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 {#if entity.device_class === "switch"}
@@ -199,7 +171,7 @@
 <Toolbar.Root class="flex-1 justify-end" aria-label="{entity.name} actions">
   {#if entity.device_class === "switch"}
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         connectPointsDialogOpen = true;
       }}
       ><Icon
@@ -208,7 +180,7 @@
       /></Toolbar.Button
     >
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         connectPowerDialogOpen = true;
       }}
       ><Icon
@@ -218,7 +190,7 @@
     >
   {:else if entity.device_class === "binary_sensor"}
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         connectBlockDetectorDialogOpen = true;
       }}
       ><Icon
@@ -228,21 +200,21 @@
     >
   {:else if entity.device_class === "light"}
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         connectSignalDialogOpen = true;
       }}
       ><Icon path={mdiRailroadLight} label="Add a new signal" /></Toolbar.Button
     >
   {:else if entity.device_class === "train"}
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         connectTrainDialogOpen = true;
       }}><Icon path={mdiTrain} label="Add a new train" /></Toolbar.Button
     >
   {/if}
   <Separator.Root />
   <Toolbar.Button
-    on:click={() => {
+    onclick={() => {
       deleteDialogOpen = true;
     }}
     ><Icon
@@ -263,9 +235,9 @@
         >Delete {entity.name}</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $deleteEntity.mutate(entity);
+          deleteEntity.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -280,6 +252,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't delete</Dialog.Close
           >
@@ -310,9 +283,9 @@
         >Add points</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $connectAsPoints.mutate(entity);
+          connectAsPoints.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -345,6 +318,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't add</Dialog.Close
           >
@@ -370,9 +344,9 @@
         >Add a power switch</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $connectAsPower.mutate(entity);
+          connectAsPower.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -386,6 +360,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't add</Dialog.Close
           >
@@ -411,9 +386,9 @@
         >Add a block detector</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $connectAsBlockDetector.mutate(entity);
+          connectAsBlockDetector.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -427,6 +402,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't add</Dialog.Close
           >
@@ -452,9 +428,9 @@
         >Add a signal</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $connectAsSignal.mutate(entity);
+          connectAsSignal.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -468,6 +444,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't add</Dialog.Close
           >
@@ -493,9 +470,9 @@
         >Add a train</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $connectAsTrain.mutate(entity);
+          connectAsTrain.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -509,6 +486,7 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't add</Dialog.Close
           >

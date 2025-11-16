@@ -1,7 +1,6 @@
 <script lang="ts">
   import { mdiTrain } from "@mdi/js";
   import { onDestroy, onMount, setContext } from "svelte";
-  import { writable } from "svelte/store";
   import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
 
   import Icon from "./lib/Icon.svelte";
@@ -11,21 +10,37 @@
   import ExtraLargeLayout from "./lib/layouts/ExtraLargeLayout.svelte";
   import SmallLayout from "./lib/layouts/SmallLayout.svelte";
 
-  const client = new QueryClient();
-  let layout = writable("sm");
-  setContext("layout", layout);
+  const client = new QueryClient({
+    defaultOptions: {
+      queries: {
+        queryFn: async ({ queryKey }) => {
+          const response = await window.fetch("/api/" + queryKey.join(""));
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("An error occurred (" + response.status + ")", {
+              cause: await response.json(),
+            });
+          }
+        },
+      },
+    },
+  });
+
+  let layout = $state("sm");
+  setContext("layout", () => layout);
 
   function windowResize() {
     if (window.innerWidth >= 1536) {
-      layout.set("2xl");
+      layout = "2xl";
     } else if (window.innerWidth >= 1280) {
-      layout.set("xl");
+      layout = "xl";
     } else if (window.innerWidth >= 1024) {
-      layout.set("lg");
+      layout = "lg";
     } else if (window.innerWidth >= 768) {
-      layout.set("md");
+      layout = "md";
     } else {
-      layout.set("sm");
+      layout = "sm";
     }
   }
 
@@ -53,9 +68,9 @@
           <span class="flex-1"></span>
           <PowerSwitchList />
         </header>
-        {#if $layout === "sm" || $layout === "md" || $layout === "lg"}
+        {#if layout === "sm" || layout === "md" || layout === "lg"}
           <SmallLayout />
-        {:else if $layout === "xl" || $layout === "2xl"}
+        {:else if layout === "xl" || layout === "2xl"}
           <ExtraLargeLayout />
         {/if}
       </div>
