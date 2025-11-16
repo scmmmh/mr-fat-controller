@@ -5,8 +5,9 @@
 
   import Icon from "../Icon.svelte";
   import {
+    entitiesToDict,
     useBlockDetectors,
-    useEntitiesDict,
+    useEntities,
     usePoints,
     useSignalAutomations,
     useSignals,
@@ -14,22 +15,22 @@
   import SignalAutomationEditor from "../editors/SignalAutomationEditor.svelte";
 
   const blockDetectors = useBlockDetectors();
-  const entitiesDict = useEntitiesDict();
+  const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const signalAutomations = useSignalAutomations();
   const signals = useSignals();
   const points = usePoints();
   const queryClient = useQueryClient();
 
-  let createDialogOpen = false;
+  let createDialogOpen = $state(false);
 
-  let newSignalAutomation: SignalAutomation = {
+  let newSignalAutomation: SignalAutomation = $state({
     id: -1,
     name: "",
     signal: -1,
     block_detector: -1,
     points: null,
     points_state: "",
-  };
+  });
 
   function createDialogOpenChange(open: boolean) {
     if (open) {
@@ -44,7 +45,7 @@
     }
   }
 
-  const createSignalAutomation = createMutation({
+  const createSignalAutomation = createMutation(() => ({
     mutationFn: async (signalAutomation: SignalAutomation) => {
       const response = await window.fetch("/api/signal-automations", {
         method: "POST",
@@ -62,10 +63,10 @@
         createDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
-{#if $blockDetectors.isSuccess && $signals.isSuccess && $blockDetectors.data.length > 0 && $signals.data.length > 0}
+{#if blockDetectors.isSuccess && signals.isSuccess && blockDetectors.data.length > 0 && signals.data.length > 0}
   <div class="flex flex-col overflow-hidden">
     <div class="flex space-x-4 flex-row items-start">
       <h2 class="flex-1 text-xl font-bold mb-2">Signal Automations</h2>
@@ -86,9 +87,9 @@
               >Add a signal automation</Dialog.Title
             >
             <form
-              on:submit={(ev) => {
+              onsubmit={(ev) => {
                 ev.preventDefault();
-                $createSignalAutomation.mutate(newSignalAutomation);
+                createSignalAutomation.mutate(newSignalAutomation);
               }}
               class="flex-1 flex flex-col overflow-hidden gap-4"
             >
@@ -102,9 +103,9 @@
                     >Controlled signal</span
                   >
                   <select bind:value={newSignalAutomation.signal}>
-                    {#each $signals.data as signal}
+                    {#each signals.data as signal}
                       <option value={signal.id}
-                        >{$entitiesDict[signal.entity]?.name}</option
+                        >{entitiesDict[signal.entity]?.name}</option
                       >
                     {/each}
                   </select>
@@ -112,23 +113,23 @@
                 <label class="block mb-4">
                   <span class="block text-sm font-bold mb-1">Next block</span>
                   <select bind:value={newSignalAutomation.block_detector}>
-                    {#each $blockDetectors.data as blockDetector}
+                    {#each blockDetectors.data as blockDetector}
                       <option value={blockDetector.id}
-                        >{$entitiesDict[blockDetector.entity]?.name}</option
+                        >{entitiesDict[blockDetector.entity]?.name}</option
                       >
                     {/each}
                   </select>
                 </label>
-                {#if $points.isSuccess && $points.data.length > 0}
+                {#if points.isSuccess && points.data.length > 0}
                   <label class="block mb-4">
                     <span class="block text-sm font-bold mb-1"
                       >Linked points</span
                     >
                     <select bind:value={newSignalAutomation.points}>
                       <option value={null}>--- Not linked to points ---</option>
-                      {#each $points.data as points}
-                        <option value={points.id}
-                          >{$entitiesDict[points.entity]?.name}</option
+                      {#each points.data as singlePoints}
+                        <option value={singlePoints.id}
+                          >{entitiesDict[singlePoints.entity]?.name}</option
                         >
                       {/each}
                     </select>
@@ -148,6 +149,7 @@
               </div>
               <div class="px-4 py-2 flex flex-row justify-end gap-4">
                 <Dialog.Close
+                  type="button"
                   class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
                   >Don't add</Dialog.Close
                 >
@@ -163,9 +165,9 @@
       </Dialog.Root>
     </div>
 
-    {#if $signalAutomations.isSuccess}
+    {#if signalAutomations.isSuccess}
       <ul class="flex-1 overflow-auto space-y-1">
-        {#each $signalAutomations.data as signalAutomation}
+        {#each signalAutomations.data as signalAutomation}
           <li class="flex flex-row space-x-4 items-center">
             <SignalAutomationEditor {signalAutomation} />
           </li>

@@ -11,18 +11,19 @@
 
   import Icon from "../Icon.svelte";
   import {
-    useEntitiesDict,
+    entitiesToDict,
+    useActiveState,
+    useEntities,
     useSendStateMessage,
-    useState,
     useTrains,
   } from "../../util";
 
   const trains = useTrains();
-  const state = useState();
-  const entitiesDict = useEntitiesDict();
+  const activeState = useActiveState();
+  const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const sendStateMessage = useSendStateMessage();
-  let train: Train | null = null;
-  let activeFunctions: string[] = [];
+  let train: Train | null = $state(null);
+  let activeFunctions: string[] = $state([]);
 
   function updateActiveFunctions(state: TrainState) {
     for (const [key, value] of Object.entries(state.functions)) {
@@ -40,28 +41,28 @@
     activeFunctions = activeFunctions;
   }
 
-  const stateUnsubscribe = state.subscribe((state) => {
-    if (train && state.train[train.id]) {
-      updateActiveFunctions(state.train[train.id]);
-    } else {
-      activeFunctions = [];
-    }
-  });
-  onDestroy(stateUnsubscribe);
+  // const stateUnsubscribe = state.subscribe((state) => {
+  //   if (train && state.train[train.id]) {
+  //     updateActiveFunctions(state.train[train.id]);
+  //   } else {
+  //     activeFunctions = [];
+  //   }
+  // });
+  // onDestroy(stateUnsubscribe);
 
-  $: {
-    if (train && $state.train[train.id]) {
-      updateActiveFunctions($state.train[train.id]);
-    } else {
-      activeFunctions = [];
-    }
-  }
+  // $: {
+  //   if (train && $state.train[train.id]) {
+  //     updateActiveFunctions($state.train[train.id]);
+  //   } else {
+  //     activeFunctions = [];
+  //   }
+  // }
 </script>
 
 <div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
   <div class="flex flex-row space-x-4 mb-2">
     <h2 class="flex-1 text-xl font-bold truncate">
-      {#if train !== null}{$entitiesDict[train.entity].name}{:else}Select Train{/if}
+      {#if train !== null}{entitiesDict[train.entity].name}{:else}Select Train{/if}
     </h2>
     <Dialog.Root>
       <Dialog.Trigger
@@ -81,14 +82,14 @@
             >Select the train to control</Dialog.Title
           >
           <form
-            on:submit={(ev) => {
+            onsubmit={(ev) => {
               ev.preventDefault();
             }}
             class="flex-1 flex flex-col overflow-hidden gap-4"
           >
             <div class="flex-1 px-4 py-2">
-              {#if $trains.isSuccess}
-                {#if $trains.data.length > 5}
+              {#if trains.isSuccess}
+                {#if trains.data.length > 5}
                   <label class="block">
                     <span class="block text-sm font-bold mb-1"
                       >Active train</span
@@ -98,9 +99,9 @@
                       class="block px-4 py-2 border border-black rounded"
                     >
                       <option value={null}>No active train</option>
-                      {#each $trains.data as item}
+                      {#each trains.data as item}
                         <option value={item}
-                          >{$entitiesDict[item.entity].name}</option
+                          >{entitiesDict[item.entity].name}</option
                         >
                       {/each}
                     </select>
@@ -111,10 +112,10 @@
                     <input type="radio" bind:group={train} value={null} />
                     <span>No active train</span>
                   </label>
-                  {#each $trains.data as item}
+                  {#each trains.data as item}
                     <label class="block mb-2">
                       <input type="radio" bind:group={train} value={item} />
-                      <span>{$entitiesDict[item.entity].name}</span>
+                      <span>{entitiesDict[item.entity].name}</span>
                     </label>
                   {/each}
                 {/if}
@@ -132,14 +133,14 @@
     </Dialog.Root>
   </div>
 
-  {#if train != null && $state.train[train.id]}
+  {#if train != null && activeState.train[train.id]}
     <Toolbar.Root
       class="flex-wrap mb-4"
-      aria-label="{$entitiesDict[train.entity].name} actions"
+      aria-label="{entitiesDict[train.entity].name} actions"
     >
       <Toolbar.Group
-        bind:value={$state.train[train.id].direction}
-        onValueChange={(value) => {
+        bind:value={activeState.train[train.id].direction}
+        onValueChange={(value: string) => {
           if (train) {
             sendStateMessage({
               type: "set-reverser",
@@ -178,6 +179,7 @@
         bind:value={activeFunctions}
         onValueChange={(values) => {
           if (train && values) {
+            console.log(values, activeFunctions.target);
             for (const value of values) {
               if (activeFunctions.indexOf(value) < 0) {
                 sendStateMessage({
@@ -198,11 +200,11 @@
         }}
         class="w-full lg:w-auto flex-wrap"
       >
-        {#each Object.entries($state.train[train.id].functions) as [key, fnct], idx}
+        {#each Object.entries(activeState.train[train.id].functions) as [key, fnct], idx}
           <Toolbar.GroupItem
             value={key}
             class="w-full lg:w-auto {idx + 1 ===
-            Object.values($state.train[train.id].functions).length
+            Object.values(activeState.train[train.id].functions).length
               ? 'rounded-b lg:rounded-r'
               : ''}"
           >
@@ -229,12 +231,15 @@
         type="range"
         min="0"
         max="127"
-        bind:value={$state.train[train.id].speed}
-        on:input={() => {
+        bind:value={activeState.train[train.id].speed}
+        oninput={() => {
           if (train !== null) {
             sendStateMessage({
               type: "set-speed",
-              payload: { id: train.id, state: $state.train[train.id].speed },
+              payload: {
+                id: train.id,
+                state: activeState.train[train.id].speed,
+              },
             });
           }
         }}

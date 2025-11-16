@@ -1,33 +1,31 @@
 <script lang="ts">
   import { AlertDialog } from "bits-ui";
   import { setContext } from "svelte";
-  import { writable, get } from "svelte/store";
   import { useQueryClient } from "@tanstack/svelte-query";
 
-  const state = writable({
+  export const { children } = $props();
+
+  const queryClient = useQueryClient();
+  const activeState: State = $state({
     block_detector: {},
     points: {},
     power_switch: {},
     signal: {},
     train: {},
-  } as State);
-  const queryClient = useQueryClient();
+  });
   const reconnectTimeouts = [
     1000, 1000, 1000, 2500, 5000, 10000, 20000, 30000, 60000,
   ];
-  let reconnectCount = 0;
-  let disconnected = true;
-  setContext("state", state);
+  let disconnected = $state(true);
+  let reconnectCount = $state(0);
   let ws: WebSocket | null = null;
 
   function connect() {
-    state.set({
-      block_detector: {},
-      points: {},
-      power_switch: {},
-      signal: {},
-      train: {},
-    });
+    activeState.block_detector = {};
+    activeState.points = {};
+    activeState.power_switch = {};
+    activeState.signal = {};
+    activeState.train = {};
 
     queryClient.invalidateQueries({ queryKey: ["block-detectors"] });
     queryClient.invalidateQueries({ queryKey: ["entities"] });
@@ -41,11 +39,9 @@
       disconnected = false;
       const msg = JSON.parse(ev.data) as StateMessage;
       if (msg.type === "state") {
-        const new_state = get(state);
         Object.entries(msg.payload).forEach(([key, obj]) => {
-          new_state[obj.type][obj.model.id] = obj;
+          activeState[obj.type][obj.model.id] = obj;
         });
-        state.set(new_state);
       }
     });
 
@@ -67,16 +63,13 @@
     }
   }
 
+  setContext("activeState", activeState);
   setContext("sendStateMessage", sendMessage);
 
   connect();
 </script>
 
-<AlertDialog.Root
-  bind:open={disconnected}
-  closeOnEscape={false}
-  closeOnOutsideClick={false}
->
+<AlertDialog.Root bind:open={disconnected}>
   <AlertDialog.Portal>
     <AlertDialog.Overlay class="fixed inset-0 z-40 bg-white/80" />
     <AlertDialog.Content
@@ -96,4 +89,4 @@
   </AlertDialog.Portal>
 </AlertDialog.Root>
 
-<slot />
+{@render children()}

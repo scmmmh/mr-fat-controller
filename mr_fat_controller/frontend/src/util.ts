@@ -2,29 +2,25 @@ import { getContext } from "svelte";
 import { type Readable, type Writable } from "svelte/store";
 import type { CreateQueryResult } from "@tanstack/svelte-query";
 
-/**
- * Default query function
- *
- * @param options The queryKey to use
- * @returns The response data
- */
-export async function queryFn<ResultType>({ queryKey }: { queryKey: string[] }): Promise<ResultType> {
-  const response = await window.fetch("/api/" + queryKey.join(""));
-  if (response.ok) {
-    return response.json();
+
+export function entitiesToDict(entities: CreateQueryResult<Entity[], Error>) {
+  if (entities.isSuccess) {
+    return Object.fromEntries(
+      entities.data.map((entity) => {
+        return [entity.id, entity];
+      }),
+    );
   } else {
-    throw new Error("An error occurred (" + response.status + ")", {
-      cause: await response.json(),
-    });
+    return {};
   }
 }
 
 export function useLayout() {
-  return getContext("layout") as Readable<string>;
+  return getContext("layout") as () => string;
 }
 
-export function useState() {
-  return getContext("state") as Writable<State>;
+export function useActiveState() {
+  return getContext("activeState") as State;
 }
 
 export function useSendStateMessage() {
@@ -44,7 +40,7 @@ export function useEntities() {
 }
 
 export function useEntitiesDict() {
-  return getContext("entitiesDict") as Readable<{ [key: number]: Entity }>;
+  return getContext("entitiesDict") as () => { [key: number]: Entity };
 }
 
 export function useBlockDetectors() {
