@@ -7,7 +7,6 @@
     mdiDomeLight,
     mdiTrain,
   } from "@mdi/js";
-  import { onDestroy } from "svelte";
 
   import Icon from "../Icon.svelte";
   import {
@@ -23,40 +22,7 @@
   const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const sendStateMessage = useSendStateMessage();
   let train: Train | null = $state(null);
-  let activeFunctions: string[] = $state([]);
-
-  function updateActiveFunctions(state: TrainState) {
-    for (const [key, value] of Object.entries(state.functions)) {
-      if (value.state === "on") {
-        if (activeFunctions.indexOf(key) < 0) {
-          activeFunctions.push(key);
-        }
-      } else {
-        const idx = activeFunctions.indexOf(key);
-        if (idx >= 0) {
-          activeFunctions.splice(idx, 1);
-        }
-      }
-    }
-    activeFunctions = activeFunctions;
-  }
-
-  // const stateUnsubscribe = state.subscribe((state) => {
-  //   if (train && state.train[train.id]) {
-  //     updateActiveFunctions(state.train[train.id]);
-  //   } else {
-  //     activeFunctions = [];
-  //   }
-  // });
-  // onDestroy(stateUnsubscribe);
-
-  // $: {
-  //   if (train && $state.train[train.id]) {
-  //     updateActiveFunctions($state.train[train.id]);
-  //   } else {
-  //     activeFunctions = [];
-  //   }
-  // }
+  let activeFunctions: string[] = [];
 </script>
 
 <div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
@@ -176,10 +142,8 @@
       <Separator.Root />
       <Toolbar.Group
         type="multiple"
-        bind:value={activeFunctions}
-        onValueChange={(values) => {
+        onValueChange={(values: string[]) => {
           if (train && values) {
-            console.log(values, activeFunctions.target);
             for (const value of values) {
               if (activeFunctions.indexOf(value) < 0) {
                 sendStateMessage({
@@ -196,6 +160,7 @@
                 });
               }
             }
+            activeFunctions = values;
           }
         }}
         class="w-full lg:w-auto flex-wrap"

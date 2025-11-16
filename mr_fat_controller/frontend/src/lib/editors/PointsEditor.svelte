@@ -43,22 +43,6 @@
     queryKey: ["points", "/" + entity.points],
   }));
 
-  // const pointsQuery = writable({
-  //   queryFn: queryFn<Points>,
-  //   queryKey: ["points"],
-  //   enabled: false,
-  // });
-
-  // const points = createQuery(pointsQuery);
-
-  // $: {
-  //   pointsQuery.set({
-  //     queryFn: queryFn<Points>,
-  //     queryKey: ["points", "/" + entity.points],
-  //     enabled: true,
-  //   });
-  // }
-
   let editPoints: Points = $state({
     id: -1,
     entity: -1,

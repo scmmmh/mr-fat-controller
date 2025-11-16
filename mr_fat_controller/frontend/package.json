@@ -15,7 +15,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "@tanstack/svelte-query": "^6.0.6",
     "@tsconfig/svelte": "^5.0.4",
-    "bits-ui": "^2.11.4",
+    "bits-ui": "^2.14.3",
     "deep-copy-ts": "^0.5.4",
     "svelte": "^5.38.1",
     "svelte-check": "^4.3.1",
