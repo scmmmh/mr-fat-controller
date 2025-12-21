@@ -8,27 +8,28 @@
 
   import Icon from "../Icon.svelte";
   import {
-    useEntitiesDict,
+    entitiesToDict,
+    useEntities,
     usePowerSwitches,
     useSendStateMessage,
-    useState,
+    useActiveState,
   } from "../../util";
 
-  const state = useState();
-  const entitiesDict = useEntitiesDict();
+  const activeState = useActiveState();
   const powerSwitches = usePowerSwitches();
+  const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const sendStateMessage = useSendStateMessage();
 
   function togglePowerSwitch(powerSwitch: PowerSwitch) {
-    if ($state.power_switch[powerSwitch.id]) {
-      if ($state.power_switch[powerSwitch.id].state === "on") {
-        $state.power_switch[powerSwitch.id].state = "switching";
+    if (activeState.power_switch[powerSwitch.id]) {
+      if (activeState.power_switch[powerSwitch.id].state === "on") {
+        activeState.power_switch[powerSwitch.id].state = "switching";
         sendStateMessage({
           type: "set-power_switch",
           payload: { id: powerSwitch.id, state: "off" },
         });
       } else {
-        $state.power_switch[powerSwitch.id].state = "switching";
+        activeState.power_switch[powerSwitch.id].state = "switching";
         sendStateMessage({
           type: "set-power_switch",
           payload: { id: powerSwitch.id, state: "on" },
@@ -38,32 +39,32 @@
   }
 </script>
 
-{#if $powerSwitches.isSuccess && $powerSwitches.data.length > 0}
+{#if powerSwitches.isSuccess && powerSwitches.data.length > 0}
   <div>
     <h2 class="sr-only">Power Switches</h2>
 
     <ul>
-      {#each $powerSwitches.data as power_switch}
+      {#each powerSwitches.data as power_switch}
         <li class="flex flex-row space-x-2 items-center">
-          {#if $entitiesDict[power_switch.entity_id]}
+          {#if entitiesDict[power_switch.entity_id]}
             <button
-              on:click={() => {
+              onclick={() => {
                 togglePowerSwitch(power_switch);
               }}
               role="switch"
-              aria-checked={$state.power_switch[power_switch.id] &&
-              $state.power_switch[power_switch.id].state === "on"
+              aria-checked={activeState.power_switch[power_switch.id] &&
+              activeState.power_switch[power_switch.id].state === "on"
                 ? "true"
                 : "false"}
-              aria-label={$entitiesDict[power_switch.entity_id].name}
-              title={$entitiesDict[power_switch.entity_id].name}
+              aria-label={entitiesDict[power_switch.entity_id].name}
+              title={entitiesDict[power_switch.entity_id].name}
               class="px-1 py-1 rounded hover:text-emerald-700 hover:bg-white focus:text-emerald-700 focus:bg-white"
             >
-              {#if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "on"}
+              {#if activeState.power_switch[power_switch.id] && activeState.power_switch[power_switch.id].state === "on"}
                 <Icon path={mdiTransmissionTower} />
-              {:else if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "off"}
+              {:else if activeState.power_switch[power_switch.id] && activeState.power_switch[power_switch.id].state === "off"}
                 <Icon path={mdiTransmissionTowerOff} />
-              {:else if $state.power_switch[power_switch.id] && $state.power_switch[power_switch.id].state === "switching"}
+              {:else if activeState.power_switch[power_switch.id] && activeState.power_switch[power_switch.id].state === "switching"}
                 <Icon path={mdiRefresh} />
               {:else}
                 <Icon path={mdiHelpRhombusOutline} />

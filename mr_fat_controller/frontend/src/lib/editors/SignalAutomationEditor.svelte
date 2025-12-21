@@ -5,29 +5,35 @@
 
   import Icon from "../Icon.svelte";
   import {
+    entitiesToDict,
     useBlockDetectors,
+    useEntities,
     useEntitiesDict,
     usePoints,
     useSignals,
   } from "../../util";
 
-  export let signalAutomation: SignalAutomation;
+  type SignalAutomationEditorProps = {
+    signalAutomation: SignalAutomation;
+  };
+
+  const { signalAutomation }: SignalAutomationEditorProps = $props();
 
   const blockDetectors = useBlockDetectors();
-  const entitiesDict = useEntitiesDict();
+  const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const signals = useSignals();
   const points = usePoints();
   const queryClient = useQueryClient();
-  let deleteDialogOpen = false;
-  let editDialogOpen = false;
-  let editSignalAutomation: SignalAutomation = {
+  let deleteDialogOpen = $state(false);
+  let editDialogOpen = $state(false);
+  let editSignalAutomation: SignalAutomation = $state({
     id: -1,
     name: "",
     signal: -1,
     block_detector: -1,
     points: null,
     points_state: "",
-  };
+  });
 
   function editDialogOpenChange() {
     editSignalAutomation.id = signalAutomation.id;
@@ -38,7 +44,7 @@
     editSignalAutomation.points_state = signalAutomation.points_state;
   }
 
-  const updateSignalAutomation = createMutation({
+  const updateSignalAutomation = createMutation(() => ({
     mutationFn: async (signalAutomation: SignalAutomation) => {
       const response = await window.fetch(
         "/api/signal-automations/" + signalAutomation.id,
@@ -63,9 +69,9 @@
         editDialogOpen = false;
       }
     },
-  });
+  }));
 
-  const deleteSignalAutomation = createMutation({
+  const deleteSignalAutomation = createMutation(() => ({
     mutationFn: async (signalAutomation: SignalAutomation) => {
       const response = await window.fetch(
         "/api/signal-automations/" + signalAutomation.id,
@@ -88,7 +94,7 @@
         deleteDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 <Icon path={mdiRailroadLight} />
@@ -100,7 +106,7 @@
   aria-label="{signalAutomation.name} actions"
 >
   <Toolbar.Button
-    on:click={() => {
+    onclick={() => {
       editDialogOpenChange();
       editDialogOpen = true;
     }}
@@ -110,7 +116,7 @@
     /></Toolbar.Button
   >
   <Toolbar.Button
-    on:click={() => {
+    onclick={() => {
       deleteDialogOpen = true;
     }}
     ><Icon
@@ -131,9 +137,9 @@
         >Edit {signalAutomation.name}</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $updateSignalAutomation.mutate(editSignalAutomation);
+          updateSignalAutomation.mutate(editSignalAutomation);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -142,39 +148,39 @@
             <span class="block text-sm font-bold mb-1">Name</span>
             <input type="text" bind:value={editSignalAutomation.name} />
           </label>
-          {#if $signals.isSuccess}
+          {#if signals.isSuccess}
             <label class="block mb-4">
               <span class="block text-sm font-bold mb-1">Controlled signal</span
               >
               <select bind:value={editSignalAutomation.signal}>
-                {#each $signals.data as signal}
+                {#each signals.data as signal}
                   <option value={signal.id}
-                    >{$entitiesDict[signal.entity]?.name}</option
+                    >{entitiesDict[signal.entity]?.name}</option
                   >
                 {/each}
               </select>
             </label>
           {/if}
-          {#if $blockDetectors.isSuccess}
+          {#if blockDetectors.isSuccess}
             <label class="block mb-4">
               <span class="block text-sm font-bold mb-1">Next block</span>
               <select bind:value={editSignalAutomation.block_detector}>
-                {#each $blockDetectors.data as blockDetector}
+                {#each blockDetectors.data as blockDetector}
                   <option value={blockDetector.id}
-                    >{$entitiesDict[blockDetector.entity]?.name}</option
+                    >{entitiesDict[blockDetector.entity]?.name}</option
                   >
                 {/each}
               </select>
             </label>
           {/if}
-          {#if $points.isSuccess && $points.data.length > 0}
+          {#if points.isSuccess && points.data.length > 0}
             <label class="block mb-4">
               <span class="block text-sm font-bold mb-1">Linked points</span>
               <select bind:value={editSignalAutomation.points}>
                 <option value={null}>--- Not linked to points ---</option>
-                {#each $points.data as points}
-                  <option value={points.id}
-                    >{$entitiesDict[points.entity]?.name}</option
+                {#each points.data as singlePoints}
+                  <option value={singlePoints.id}
+                    >{entitiesDict[singlePoints.entity]?.name}</option
                   >
                 {/each}
               </select>
@@ -192,16 +198,17 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't update</Dialog.Close
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$updateSignalAutomation.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {updateSignalAutomation.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$updateSignalAutomation.isPending}
-            >{#if $updateSignalAutomation.isPending}Updating...{:else}Update{/if}</button
+            disabled={updateSignalAutomation.isPending}
+            >{#if updateSignalAutomation.isPending}Updating...{:else}Update{/if}</button
           >
         </div>
       </form>
@@ -220,9 +227,9 @@
         >Confirm deleting</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $deleteSignalAutomation.mutate(signalAutomation);
+          deleteSignalAutomation.mutate(signalAutomation);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -236,16 +243,17 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't delete</Dialog.Close
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$deleteSignalAutomation.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteSignalAutomation.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$deleteSignalAutomation.isPending}
-            >{#if $deleteSignalAutomation.isPending}Deleting...{:else}Delete{/if}</button
+            disabled={deleteSignalAutomation.isPending}
+            >{#if deleteSignalAutomation.isPending}Deleting...{:else}Delete{/if}</button
           >
         </div>
       </form>

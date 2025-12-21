@@ -6,7 +6,6 @@
     mdiSourceBranch,
     mdiTrashCanOutline,
   } from "@mdi/js";
-  import { writable } from "svelte/store";
   import {
     createMutation,
     createQuery,
@@ -14,16 +13,17 @@
   } from "@tanstack/svelte-query";
 
   import Icon from "../Icon.svelte";
-  import { queryFn, useEntitiesDict } from "../../util";
 
-  export let entity: Entity;
+  type PointsEditorProps = {
+    entity: Entity;
+  };
+  const { entity }: PointsEditorProps = $props();
 
   const queryClient = useQueryClient();
-  let deleteDialogOpen = false;
-  let editDialogOpen = false;
-  const entitiesDict = useEntitiesDict();
+  let deleteDialogOpen = $state(false);
+  let editDialogOpen = $state(false);
 
-  const deleteEntity = createMutation({
+  const deleteEntity = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/points/" + entity.points, {
         method: "DELETE",
@@ -37,38 +37,26 @@
         deleteDialogOpen = false;
       }
     },
-  });
+  }));
 
-  const pointsQuery = writable({
-    queryFn: queryFn<Points>,
-    queryKey: ["points"],
-    enabled: false,
-  });
+  const points = createQuery<Points>(() => ({
+    queryKey: ["points", "/" + entity.points],
+  }));
 
-  const points = createQuery(pointsQuery);
-
-  $: {
-    pointsQuery.set({
-      queryFn: queryFn<Points>,
-      queryKey: ["points", "/" + entity.points],
-      enabled: true,
-    });
-  }
-
-  let editPoints = {
+  let editPoints: Points = $state({
     id: -1,
     entity: -1,
     through_state: "OFF",
     diverge_state: "ON",
-  } as Points;
+  });
 
   function openEditDialog(open: boolean) {
     if (open) {
-      editPoints = deepCopy($points.data as Points);
+      editPoints = deepCopy(points.data as Points);
     }
   }
 
-  const updatePoints = createMutation({
+  const updatePoints = createMutation(() => ({
     mutationFn: async (points: Points) => {
       const body = {
         through_state: points.through_state,
@@ -87,17 +75,17 @@
         editDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 <Icon path={mdiSourceBranch} />
 
 <span class="w-80 truncate">{entity.name}</span>
 
-{#if $points.isSuccess}
+{#if points.isSuccess}
   <Toolbar.Root class="flex-1 justify-end" aria-label="{entity.name} actions">
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         editDialogOpen = true;
         openEditDialog(true);
       }}
@@ -108,7 +96,7 @@
     >
     <Separator.Root />
     <Toolbar.Button
-      on:click={() => {
+      onclick={() => {
         deleteDialogOpen = true;
       }}
       ><Icon
@@ -130,9 +118,9 @@
         >Edit {entity.name}</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $updatePoints.mutate(editPoints);
+          updatePoints.mutate(editPoints);
         }}
         class="flex-1 flex flex-col overflow-auto gap-4"
       >
@@ -162,16 +150,17 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't update</Dialog.Close
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$deleteEntity.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteEntity.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$deleteEntity.isPending}
-            >{#if $deleteEntity.isPending}Updating...{:else}Update{/if}</button
+            disabled={deleteEntity.isPending}
+            >{#if deleteEntity.isPending}Updating...{:else}Update{/if}</button
           >
         </div>
       </form>
@@ -190,9 +179,9 @@
         >Confirm delete</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $deleteEntity.mutate(entity);
+          deleteEntity.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -206,16 +195,17 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't delete</Dialog.Close
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$deleteEntity.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteEntity.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$deleteEntity.isPending}
-            >{#if $deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
+            disabled={deleteEntity.isPending}
+            >{#if deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
           >
         </div>
       </form>

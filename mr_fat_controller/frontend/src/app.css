@@ -4,36 +4,36 @@ button {
     @apply cursor-pointer;
 }
 
-[data-melt-toolbar] {
+[data-toolbar-root] {
     @apply flex flex-row;
 }
 
-[data-melt-toolbar-group] {
+[data-toolbar-group] {
     @apply flex flex-row;
 }
 
-[data-melt-toolbar-button], [data-melt-toolbar-group-item], [data-melt-dialog-trigger] {
+[data-toolbar-button], [data-toolbar-group-item], [data-dialog-trigger] {
     @apply block transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1;
 }
 
 
-[data-melt-toolbar-group-item][aria-checked="true"], [data-melt-toolbar-group-item][aria-pressed="true"]{
+[data-toolbar-group-item][aria-checked="true"], [data-toolbar-group-item][aria-pressed="true"]{
     @apply bg-emerald-300 hover:text-black focus:text-black;
 }
 
-[data-melt-dialog-trigger] {
+[data-dialog-trigger] {
     @apply rounded;
 }
 
-[data-melt-toolbar-button]:first-child {
+[data-toolbar-button]:first-child {
     @apply rounded-l;
 }
 
-[data-melt-toolbar-button]:last-child {
+[data-toolbar-button]:last-child {
     @apply rounded-r;
 }
 
-[data-melt-toolbar] [data-melt-separator] {
+[data-toolbar] [data-separator] {
     @apply border-l border-l-white;
 }
 

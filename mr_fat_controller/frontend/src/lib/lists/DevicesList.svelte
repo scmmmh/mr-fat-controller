@@ -16,9 +16,9 @@
 
   let deleteDeviceOpen = false;
   let deleteDevice: Device | null = null;
-  const runDeleteEntity = createMutation({
-    mutationFn: async (entity: Device) => {
-      const response = await window.fetch("/api/devices/" + deleteDevice?.id, {
+  const runDeleteEntity = createMutation(() => ({
+    mutationFn: async (device: Device) => {
+      const response = await window.fetch("/api/devices/" + device.id, {
         method: "DELETE",
         headers: {
           Accept: "application/json",
@@ -33,15 +33,15 @@
         deleteDeviceOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 <div class="flex flex-col overflow-hidden">
   <h2 class="text-xl font-bold mb-2">Devices</h2>
 
-  {#if $devices.isSuccess}
+  {#if devices.isSuccess}
     <ul class="flex-1 overflow-auto space-y-1">
-      {#each $devices.data as device}
+      {#each devices.data as device}
         <li class="flex flex-row space-x-2 items-center">
           {#if device.attrs.model === "MQTT House @ Pi Pico"}
             <Icon path={mdiChip} />
@@ -53,7 +53,7 @@
           <span class="flex-1">{device.name}</span>
 
           <button
-            on:click={() => {
+            onclick={() => {
               deleteDevice = device;
               deleteDeviceOpen = true;
             }}
@@ -78,9 +78,11 @@
             >Delete {deleteDevice?.name}</Dialog.Title
           >
           <form
-            on:submit={(ev) => {
+            onsubmit={(ev) => {
               ev.preventDefault();
-              $runDeleteEntity.mutate(deleteDevice);
+              if (deleteDevice) {
+                runDeleteEntity.mutate(deleteDevice);
+              }
             }}
             class="flex-1 flex flex-col overflow-hidden gap-4"
           >
@@ -94,6 +96,7 @@
             </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
               <Dialog.Close
+                type="button"
                 class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
                 >Don't delete</Dialog.Close
               >

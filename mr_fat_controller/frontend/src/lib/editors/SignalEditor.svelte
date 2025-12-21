@@ -5,12 +5,16 @@
 
   import Icon from "../Icon.svelte";
 
-  export let entity: Entity;
+  type SignalEditorProps = {
+    entity: Entity;
+  };
+
+  const { entity }: SignalEditorProps = $props();
 
   const queryClient = useQueryClient();
-  let deleteDialogOpen = false;
+  let deleteDialogOpen = $state(false);
 
-  const deleteEntity = createMutation({
+  const deleteEntity = createMutation(() => ({
     mutationFn: async (entity: Entity) => {
       const response = await window.fetch("/api/signals/" + entity.signal, {
         method: "DELETE",
@@ -24,7 +28,7 @@
         deleteDialogOpen = false;
       }
     },
-  });
+  }));
 </script>
 
 <Icon path={mdiRailroadLight} />
@@ -33,7 +37,7 @@
 
 <Toolbar.Root class="flex-1 justify-end" aria-label="{entity.name} actions">
   <Toolbar.Button
-    on:click={() => {
+    onclick={() => {
       deleteDialogOpen = true;
     }}
     ><Icon
@@ -54,9 +58,9 @@
         >Confirm deleting</Dialog.Title
       >
       <form
-        on:submit={(ev) => {
+        onsubmit={(ev) => {
           ev.preventDefault();
-          $deleteEntity.mutate(entity);
+          deleteEntity.mutate(entity);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
@@ -70,16 +74,17 @@
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
+            type="button"
             class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded"
             >Don't delete</Dialog.Close
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {$deleteEntity.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteEntity.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={$deleteEntity.isPending}
-            >{#if $deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
+            disabled={deleteEntity.isPending}
+            >{#if deleteEntity.isPending}Deleting...{:else}Delete{/if}</button
           >
         </div>
       </form>

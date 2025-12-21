@@ -22,5 +22,5 @@
     <path d={path} />
   </svg>
 {:else}
-  <span class="inline-block w-{size} h-{size} {cls}" />
+  <span class="inline-block w-{size} h-{size} {cls}"></span>
 {/if}
