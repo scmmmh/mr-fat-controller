@@ -1,9 +1,27 @@
 @import "tailwindcss";
 
+/**
+ * Generic styling
+ */
+
 button {
     @apply cursor-pointer;
 }
 
+select, input[type="text"], input[type="number"] {
+    @apply block w-full px-4 py-2 rounded border border-gray-500;
+}
+
+/**
+ * Form styling
+ */
+[data-form-label] {
+    @apply block text-sm font-bold mb-1;
+}
+
+/**
+ * Toolbar styling
+ */
 [data-toolbar-root] {
     @apply flex flex-row;
 }
@@ -16,13 +34,8 @@ button {
     @apply block transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1;
 }
 
-
 [data-toolbar-group-item][aria-checked="true"], [data-toolbar-group-item][aria-pressed="true"]{
     @apply bg-emerald-300 hover:text-black focus:text-black;
-}
-
-[data-dialog-trigger] {
-    @apply rounded;
 }
 
 [data-toolbar-button]:first-child {
@@ -37,6 +50,9 @@ button {
     @apply border-l border-l-white;
 }
 
-select, input[type="text"] {
-    @apply block w-full px-4 py-2 rounded border border-gray-500;
+/**
+ * Dialog styling
+ */
+[data-dialog-trigger] {
+    @apply rounded;
 }

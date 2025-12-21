@@ -24,9 +24,7 @@ class CreateTrainModel(BaseModel):
 @router.post("", response_model=TrainModel)
 async def create_train(data: CreateTrainModel, dbsession=Depends(inject_db_session)) -> Train:
     """Create new train."""
-    train = Train(
-        entity_id=data.entity_id,
-    )
+    train = Train(entity_id=data.entity_id, max_speed=0)
     dbsession.add(train)
     await dbsession.commit()
     await recalculate_state()
@@ -48,6 +46,27 @@ async def get_train(tid: int, dbsession=Depends(inject_db_session)) -> Train:
     query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
+        return train
+    else:
+        raise HTTPException(404, "No such train found")
+
+
+class UpdateTrainModel(BaseModel):
+    """Model to validate updates to a train."""
+
+    id: int
+    entity: int
+    max_speed: int
+
+
+@router.put("/{tid}", response_model=TrainModel)
+async def update_train(tid: int, data: UpdateTrainModel, dbsession=Depends(inject_db_session)) -> Train:
+    """Update a train."""
+    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
+    train = (await dbsession.execute(query)).scalar()
+    if train is not None:
+        train.max_speed = data.max_speed
+        await dbsession.commit()
         return train
     else:
         raise HTTPException(404, "No such train found")

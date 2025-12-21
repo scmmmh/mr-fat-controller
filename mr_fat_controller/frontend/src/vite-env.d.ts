@@ -80,6 +80,7 @@ type SignalAutomation = {
 type Train = {
   id: number,
   entity: number,
+  max_speed: number,
 };
 
 type TrainState = {

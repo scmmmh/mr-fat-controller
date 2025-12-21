@@ -20,6 +20,7 @@ class Train(Base):
 
     id = Column(Integer, primary_key=True)
     entity_id = Column(Integer, ForeignKey("entities.id"))
+    max_speed = Column(Integer)
 
     entity = relationship("Entity", back_populates="train")
 
@@ -28,7 +29,7 @@ class TrainModel(BaseModel):
     """Model for returning a Train."""
 
     id: int
-
     entity: Annotated[int, BeforeValidator(object_to_model_id)]
+    max_speed: int
 
     model_config = ConfigDict(from_attributes=True)

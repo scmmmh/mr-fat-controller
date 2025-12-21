@@ -5,7 +5,7 @@
     mdiArrowUp,
     mdiCarLightDimmed,
     mdiDomeLight,
-    mdiTrain,
+    mdiPencil,
   } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
@@ -34,8 +34,8 @@
       <Dialog.Trigger
         class="block rounded transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1"
         ><Icon
-          path={mdiTrain}
-          label="Select the active train"
+          path={mdiPencil}
+          label="Configure the controller"
         /></Dialog.Trigger
       >
       <Dialog.Portal>
@@ -45,7 +45,7 @@
         >
           <Dialog.Title
             class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
-            >Select the train to control</Dialog.Title
+            >Configure the controller</Dialog.Title
           >
           <form
             onsubmit={(ev) => {
@@ -55,36 +55,20 @@
           >
             <div class="flex-1 px-4 py-2">
               {#if trains.isSuccess}
-                {#if trains.data.length > 5}
-                  <label class="block">
-                    <span class="block text-sm font-bold mb-1"
-                      >Active train</span
-                    >
-                    <select
-                      bind:value={train}
-                      class="block px-4 py-2 border border-black rounded"
-                    >
-                      <option value={null}>No active train</option>
-                      {#each trains.data as item}
-                        <option value={item}
-                          >{entitiesDict[item.entity].name}</option
-                        >
-                      {/each}
-                    </select>
-                  </label>
-                {:else}
+                <label class="block">
                   <span class="block text-sm font-bold mb-1">Active train</span>
-                  <label class="block mb-2">
-                    <input type="radio" bind:group={train} value={null} />
-                    <span>No active train</span>
-                  </label>
-                  {#each trains.data as item}
-                    <label class="block mb-2">
-                      <input type="radio" bind:group={train} value={item} />
-                      <span>{entitiesDict[item.entity].name}</span>
-                    </label>
-                  {/each}
-                {/if}
+                  <select
+                    bind:value={train}
+                    class="block px-4 py-2 border border-black rounded"
+                  >
+                    <option value={null}>No active train</option>
+                    {#each trains.data as item}
+                      <option value={item}
+                        >{entitiesDict[item.entity].name}</option
+                      >
+                    {/each}
+                  </select>
+                </label>
               {/if}
             </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
@@ -184,6 +168,16 @@
         {/each}
       </Toolbar.Group>
     </Toolbar.Root>
+    <div class="text-center mb-4">
+      <span
+        class="inline-block bg-black text-white font-mono px-2 py-1 text-2xl tracking-widest rounded"
+        >{Math.floor(
+          (activeState.train[train.id].speed / 127) * train.max_speed,
+        )
+          .toString()
+          .padStart(3, "0")}</span
+      >
+    </div>
     <div class="flex-1 text-center overflow-hidden">
       <datalist id="{train.id}-speeds">
         <option value="0"></option>
