@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { Dialog, Separator, Toolbar } from "bits-ui";
+  import { Dialog, Separator, Slider, Toolbar } from "bits-ui";
   import {
     mdiArrowDown,
     mdiArrowUp,
     mdiCarLightDimmed,
+    mdiCloseOctagonOutline,
     mdiDomeLight,
     mdiPencil,
   } from "@mdi/js";
@@ -30,6 +31,16 @@
   let simulatedSpeed: number = $state(0);
   let throttleValue: number = $state(0);
   let breakValue: number = $state(0);
+  let combinedSteps: number[] = $state([]);
+  let combinedTicks: number[] = $state([]);
+
+  function range(start: number, end: number, step: number) {
+    const buffer: number[] = [];
+    for (let idx = start; idx < end; idx = idx + step) {
+      buffer.push(Math.floor(idx));
+    }
+    return buffer;
+  }
 
   let train = $derived.by(() => {
     if (trainController !== null && trains.isSuccess) {
@@ -49,6 +60,68 @@
       simulatedSpeed = 0;
     } else {
       window.clearInterval(simulationInterval);
+    }
+  });
+
+  function calculateCombinedSteps() {
+    const buffer = [];
+    if (trainController !== null) {
+      for (
+        let step = -100;
+        step < Math.min(-100 / trainController.break_steps, -4);
+        step = step + 100 / trainController.break_steps
+      ) {
+        buffer.push(Math.round(step));
+      }
+      buffer.push(0);
+      for (
+        let step = Math.max(100 / trainController.throttle_steps, 5);
+        step <= 100;
+        step = step + 100 / trainController.throttle_steps
+      ) {
+        buffer.push(Math.round(step));
+      }
+    }
+    return buffer;
+  }
+
+  function calculateCombinedTicks() {
+    const buffer = [];
+    if (trainController !== null) {
+      for (
+        let step = -100;
+        step < Math.min(-100 / trainController.break_steps, -4);
+        step = step + 100 / trainController.break_steps
+      ) {
+        const roundedStep = Math.round(step);
+        if ([-100, -75, -50, -25].indexOf(roundedStep) >= 0) {
+          buffer.push(roundedStep);
+        }
+      }
+      buffer.push(0);
+      for (
+        let step = Math.max(100 / trainController.throttle_steps, 5);
+        step <= 100;
+        step = step + 100 / trainController.throttle_steps
+      ) {
+        const roundedStep = Math.round(step);
+        if ([100, 75, 50, 25].indexOf(roundedStep) >= 0) {
+          buffer.push(roundedStep);
+        }
+      }
+    }
+    return buffer;
+  }
+
+  $effect(() => {
+    if (trainController !== null) {
+      if (trainController.mode === "direct") {
+        combinedSteps = range(0, 128, 1);
+        combinedTicks = [0, 16, 32, 48, 64, 80, 96, 112, 127];
+      } else if (trainController.mode === "combined") {
+        combinedSteps = calculateCombinedSteps();
+        combinedTicks = calculateCombinedTicks();
+      }
     }
   });
 
@@ -97,6 +170,7 @@
       }
     }
   }
+
   onDestroy(() => {
     window.clearInterval(simulationInterval);
   });
@@ -158,6 +232,18 @@
       class="flex-wrap mb-4"
       aria-label="{entitiesDict[train.entity].name} actions"
     >
+      <Toolbar.Button
+        aria-label="Emergency stop"
+        onclick={() => {
+          throttleValue = 0;
+          simulatedSpeed = 0;
+        }}
+        ><Icon
+          path={mdiCloseOctagonOutline}
+          label="Emergency stop this train"
+        /></Toolbar.Button
+      >
+      <Separator.Root />
       <Toolbar.Group
         bind:value={activeState.train[train.id].direction}
         onValueChange={(value: string) => {
@@ -250,54 +336,55 @@
     </div>
     <div class="flex-1 text-center overflow-hidden">
       {#if trainController.mode === "direct"}
-        <datalist id="{train.id}-speeds">
-          <option value="0"></option>
-          <option value="31"></option>
-          <option value="63"></option>
-          <option value="95"></option>
-          <option value="127"></option>
-        </datalist>
-        <input
-          type="range"
-          min="0"
-          max="127"
-          bind:value={activeState.train[train.id].speed}
-          oninput={() => {
-            if (train !== null) {
-              sendStateMessage({
-                type: "set-speed",
-                payload: {
-                  id: train.id,
-                  state: activeState.train[train.id].speed,
-                },
-              });
-            }
-          }}
-          list="{train.id}-speeds"
-          class="h-full"
-          style="writing-mode: sideways-lr;"
-        />
-      {:else if trainController.mode === "combined"}
-        <datalist id="{train.id}-speeds">
-          <option value="-100"></option>
-          <option value="-75"></option>
-          <option value="-50"></option>
-          <option value="-25"></option>
-          <option value="0"></option>
-          <option value="25"></option>
-          <option value="50"></option>
-          <option value="75"></option>
-          <option value="100"></option>
-        </datalist>
-        <input
-          type="range"
-          min="-100"
-          max="100"
+        <Slider.Root
           bind:value={throttleValue}
-          list="{train.id}-speeds"
-          class="h-full"
-          style="writing-mode: sideways-lr;"
-        />
+          type="single"
+          orientation="vertical"
+          step={combinedSteps}
+          onValueChange={(value: number) => {
+            activeState.train[train.id].speed = Math.floor(value);
+            sendStateMessage({
+              type: "set-speed",
+              payload: {
+                id: train.id,
+                state: activeState.train[train.id].speed,
+              },
+            });
+          }}
+        >
+          {#snippet children({ tickItems })}
+            <span data-slider-range-bg=""><Slider.Range /></span>
+            <Slider.Thumb index={0} />
+            <Slider.ThumbLabel index={0} position="top"
+              ><span>{throttleValue}</span></Slider.ThumbLabel
+            >
+            {#each tickItems as { value, index } (index)}
+              {#if combinedTicks.indexOf(value) >= 0}
+                <Slider.Tick {index} />
+              {/if}
+            {/each}
+          {/snippet}
+        </Slider.Root>
+      {:else if trainController.mode === "combined"}
+        <Slider.Root
+          bind:value={throttleValue}
+          type="single"
+          orientation="vertical"
+          step={combinedSteps}
+        >
+          {#snippet children({ tickItems })}
+            <span data-slider-range-bg=""><Slider.Range /></span>
+            <Slider.Thumb index={0} />
+            <Slider.ThumbLabel index={0} position="top"
+              ><span>{throttleValue}</span></Slider.ThumbLabel
+            >
+            {#each tickItems as { value, index } (index)}
+              {#if combinedTicks.indexOf(value) >= 0}
+                <Slider.Tick {index} />
+              {/if}
+            {/each}
+          {/snippet}
+        </Slider.Root>
       {/if}
     </div>
     <div class="h-20"></div>

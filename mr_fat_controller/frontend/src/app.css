@@ -64,3 +64,31 @@ select, input[type="text"], input[type="number"] {
 [data-dialog-trigger] {
     @apply rounded;
 }
+
+/**
+ * Slider styling
+ */
+
+[data-slider-root] {
+    @apply flex flex-col relative w-full h-full touch-none select-none items-center;
+}
+
+[data-slider-range-bg] {
+    @apply block bg-slate-400 relative w-2 grow cursor-pointer overflow-hidden rounded-full;
+}
+
+[data-slider-range] {
+    @apply bg-slate-800 absolute w-full left-0;
+}
+
+[data-slider-thumb] {
+    @apply block absolute w-8 h-4 bg-emerald-700 focus:bg-emerald-600 transition-colors rounded shadow-xl;
+}
+
+[data-slider-thumb-label] > span{
+    @apply block absolute -translate-y-1/2 -translate-x-1/2 text-xs text-white;
+}
+
+[data-slider-tick] {
+    @apply ml-10 bg-black w-2 h-[1px];
+}
