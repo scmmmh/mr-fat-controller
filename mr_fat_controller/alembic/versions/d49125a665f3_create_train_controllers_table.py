@@ -24,6 +24,8 @@ def upgrade() -> None:
         Column("train_id", Integer, ForeignKey("trains.id")),
         Column("name", Unicode(255)),
         Column("mode", Unicode(255)),
+        Column("throttle_steps", Integer),
+        Column("break_steps", Integer),
     )
 
 

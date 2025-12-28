@@ -56,12 +56,13 @@
     if (trainController?.mode === "combined") {
       if (throttleValue >= 0) {
         const currentSpeed = (train.max_speed / 127) * simulatedSpeed;
-        const acceleration = ((2.2 / 100) * throttleValue * 3.6) / 10;
+        const acceleration =
+          ((train.max_acceleration / 100) * throttleValue * 3.6) / 10;
         simulatedSpeed = Math.max(
           Math.min(
             ((currentSpeed +
               acceleration -
-              currentSpeed * currentSpeed * 0.000005) /
+              currentSpeed * currentSpeed * train.aerodynamic_resistance) /
               train.max_speed) *
               127,
             127,
@@ -70,12 +71,13 @@
         );
       } else {
         const currentSpeed = (train.max_speed / 127) * simulatedSpeed;
-        const deceleration = ((1.8 / 100) * Math.abs(throttleValue) * 3.6) / 10;
+        const deceleration =
+          ((train.max_deceleration / 100) * Math.abs(throttleValue) * 3.6) / 10;
         simulatedSpeed = Math.max(
           Math.min(
             ((currentSpeed -
               deceleration -
-              currentSpeed * currentSpeed * 0.000005) /
+              currentSpeed * currentSpeed * train.aerodynamic_resistance) /
               train.max_speed) *
               127,
             127,

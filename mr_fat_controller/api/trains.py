@@ -24,7 +24,7 @@ class CreateTrainModel(BaseModel):
 @router.post("", response_model=TrainModel)
 async def create_train(data: CreateTrainModel, dbsession=Depends(inject_db_session)) -> Train:
     """Create new train."""
-    train = Train(entity_id=data.entity_id, max_speed=0)
+    train = Train(entity_id=data.entity_id, max_speed=0, aerodynamic_resistance=0)
     dbsession.add(train)
     await dbsession.commit()
     await recalculate_state()
@@ -64,6 +64,9 @@ class UpdateTrainModel(BaseModel):
     id: int
     entity: int
     max_speed: int
+    max_acceleration: float
+    max_deceleration: float
+    aerodynamic_resistance: float
 
 
 @router.put("/{tid}", response_model=TrainModel)
@@ -78,6 +81,9 @@ async def update_train(tid: int, data: UpdateTrainModel, dbsession=Depends(injec
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
         train.max_speed = data.max_speed
+        train.max_acceleration = data.max_acceleration
+        train.max_deceleration = data.max_deceleration
+        train.aerodynamic_resistance = data.aerodynamic_resistance
         await dbsession.commit()
         return train
     else:

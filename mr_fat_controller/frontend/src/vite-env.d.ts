@@ -81,6 +81,9 @@ type Train = {
   id: number,
   entity: number,
   max_speed: number,
+  max_acceleration: number,
+  max_deceleration: number,
+  aerodynamic_resistance: number,
 };
 
 type TrainState = {
@@ -97,10 +100,12 @@ type TrainFunctionState = {
 };
 
 type TrainController = {
-  id: number;
-  mode: "direct" | "combined" | "separate";
-  name: string;
-  train: number;
+  id: number,
+  mode: "direct" | "combined" | "separate",
+  name: string,
+  throttle_steps: number,
+  break_steps: number,
+  train: number,
 }
 
 type State = {

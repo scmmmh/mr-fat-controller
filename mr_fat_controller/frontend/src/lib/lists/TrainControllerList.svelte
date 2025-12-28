@@ -30,6 +30,8 @@
     name: "",
     mode: "direct",
     train: -1,
+    throttle_steps: 100,
+    break_steps: 100,
   });
 
   function createDialogOpenChange(open: boolean) {
@@ -39,6 +41,8 @@
         name: "",
         mode: "direct",
         train: -1,
+        throttle_steps: 100,
+        break_steps: 100,
       };
     }
   }
@@ -120,6 +124,22 @@
                     <option value="combined">Combined throttle & break</option>
                     <option value="separate">Separate throttle & break</option>
                   </select>
+                </label>
+                <label data-form-field="">
+                  <span data-form-label="">Throttle steps</span>
+                  <input
+                    type="number"
+                    bind:value={newTrainController.throttle_steps}
+                    data-form-input=""
+                  />
+                </label>
+                <label data-form-field="">
+                  <span data-form-label="">Break steps</span>
+                  <input
+                    type="number"
+                    bind:value={newTrainController.break_steps}
+                    data-form-input=""
+                  />
                 </label>
               </div>
               <div class="px-4 py-2 flex flex-row justify-end gap-4">

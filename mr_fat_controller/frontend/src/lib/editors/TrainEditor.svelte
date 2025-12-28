@@ -105,9 +105,44 @@
       >
         <div class="flex-1 px-4 py-2">
           {#if train.isSuccess}
-            <label class="mb-4">
-              <span data-form-label>Maximum speed (km/h)</span>
-              <input type="number" bind:value={train.data.max_speed} />
+            <label data-form-field="">
+              <span data-form-label="">Maximum speed (km/h)</span>
+              <input
+                type="number"
+                bind:value={train.data.max_speed}
+                data-form-input=""
+              />
+            </label>
+            <label data-form-field="">
+              <span data-form-label=""
+                >Maximum acceleration (m/s<sup>2</sup>)</span
+              >
+              <input
+                type="number"
+                bind:value={train.data.max_acceleration}
+                data-form-input=""
+                step="any"
+              />
+            </label>
+            <label data-form-field="">
+              <span data-form-label=""
+                >Maximum deceleration (m/s<sup>2</sup>)</span
+              >
+              <input
+                type="number"
+                bind:value={train.data.max_deceleration}
+                data-form-input=""
+                step="any"
+              />
+            </label>
+            <label data-form-field="">
+              <span data-form-label="">Aerodynamic resistance factor</span>
+              <input
+                type="number"
+                bind:value={train.data.aerodynamic_resistance}
+                data-form-input=""
+                step="any"
+              />
             </label>
           {/if}
         </div>

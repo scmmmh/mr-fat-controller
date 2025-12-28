@@ -22,6 +22,8 @@
     id: -1,
     name: "",
     model: "direct",
+    throttle_steps: 100,
+    break_steps: 100,
     train: -1,
   });
 
@@ -29,6 +31,8 @@
     editTrainController.id = trainController.id;
     editTrainController.name = trainController.name;
     editTrainController.mode = trainController.mode;
+    editTrainController.throttle_steps = trainController.throttle_steps;
+    editTrainController.break_steps = trainController.break_steps;
     editTrainController.train = trainController.train;
   }
 
@@ -152,6 +156,22 @@
               <option value="separate">Separate throttle & break</option>
             </select>
           </label>
+          <label data-form-field="">
+            <span data-form-label="">Throttle steps</span>
+            <input
+              type="number"
+              bind:value={editTrainController.throttle_steps}
+              data-form-input=""
+            />
+          </label>
+          <label data-form-field="">
+            <span data-form-label="">Break steps</span>
+            <input
+              type="number"
+              bind:value={editTrainController.break_steps}
+              data-form-input=""
+            />
+          </label>
         </div>
         <div class="px-4 py-2 flex flex-row justify-end gap-4">
           <Dialog.Close
@@ -186,15 +206,15 @@
       <form
         onsubmit={(ev) => {
           ev.preventDefault();
-          deleteSignalAutomation.mutate(signalAutomation);
+          deleteTrainController.mutate(trainController);
         }}
         class="flex-1 flex flex-col overflow-hidden gap-4"
       >
         <div class="flex-1 px-4 py-2">
           <p>
-            Delete the signal automation <span
+            Delete the train controller <span
               class="inline-block border border-emerald-700 px-2 rounded"
-              >{signalAutomation.name}</span
+              >{trainController.name}</span
             >.
           </p>
         </div>
@@ -206,11 +226,11 @@
           >
           <button
             type="submit"
-            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteSignalAutomation.isPending
+            class="px-4 py-2 bg-emerald-700 text-white transition-colors hover:bg-emerald-600 focus:bg-emerald-600 rounded {deleteTrainController.isPending
               ? 'cursor-progress'
               : ''}"
-            disabled={deleteSignalAutomation.isPending}
-            >{#if deleteSignalAutomation.isPending}Deleting...{:else}Delete{/if}</button
+            disabled={deleteTrainController.isPending}
+            >{#if deleteTrainController.isPending}Deleting...{:else}Delete{/if}</button
           >
         </div>
       </form>

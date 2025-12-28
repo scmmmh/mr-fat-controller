@@ -22,6 +22,8 @@ class TrainController(Base):
     train_id = Column(Integer, ForeignKey("trains.id"))
     name = Column(Unicode(255))
     mode = Column(Unicode(255))
+    throttle_steps = Column(Integer)
+    break_steps = Column(Integer)
 
     train = relationship("Train", back_populates="controllers")
 
@@ -33,5 +35,7 @@ class TrainControllerModel(BaseModel):
     train: Annotated[int, BeforeValidator(object_to_model_id)]
     name: str
     mode: Literal["direct"] | Literal["combined"] | Literal["separate"]
+    throttle_steps: int
+    break_steps: int
 
     model_config = ConfigDict(from_attributes=True)

@@ -22,6 +22,8 @@ class CreateTrainControllerModel(BaseModel):
     train: int
     name: str
     mode: Literal["direct"] | Literal["combined"] | Literal["separate"]
+    throttle_steps: int
+    break_steps: int
 
 
 @router.post("", response_model=TrainControllerModel)
@@ -29,7 +31,13 @@ async def create_train_controller(
     data: CreateTrainControllerModel, dbsession=Depends(inject_db_session)
 ) -> TrainController:
     """Create new train controller."""
-    train_controller = TrainController(train_id=data.train, name=data.name, mode=data.mode)
+    train_controller = TrainController(
+        train_id=data.train,
+        name=data.name,
+        mode=data.mode,
+        throttle_steps=data.throttle_steps,
+        break_steps=data.break_steps,
+    )
     dbsession.add(train_controller)
     await dbsession.commit()
     return await get_train_controller(train_controller.id, dbsession=dbsession)  # pyright: ignore [reportArgumentType]
@@ -60,6 +68,8 @@ class UpdateTrainControllerModel(BaseModel):
     id: int
     name: str
     mode: Literal["direct"] | Literal["combined"] | Literal["separate"]
+    throttle_steps: int
+    break_steps: int
 
 
 @router.put("/{tid}", response_model=TrainControllerModel)
@@ -72,6 +82,8 @@ async def update_train_controller(
     if train_controller is not None:
         train_controller.name = data.name
         train_controller.mode = data.mode
+        train_controller.throttle_steps = data.throttle_steps
+        train_controller.break_steps = data.break_steps
         await dbsession.commit()
         return train_controller
     else:
