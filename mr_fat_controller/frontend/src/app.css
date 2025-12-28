@@ -15,8 +15,16 @@ select, input[type="text"], input[type="number"] {
 /**
  * Form styling
  */
+[data-form-field] {
+    @apply block mb-4;
+}
+
 [data-form-label] {
     @apply block text-sm font-bold mb-1;
+}
+
+[data-form-input] {
+    @apply block w-full px-4 py-2 rounded border border-gray-500;
 }
 
 /**

@@ -10,7 +10,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from mr_fat_controller.models.meta import Base
-from mr_fat_controller.models.util import object_to_model_id
+from mr_fat_controller.models.util import object_to_model_id, objects_to_model_ids
 
 
 class Train(Base):
@@ -23,6 +23,7 @@ class Train(Base):
     max_speed = Column(Integer)
 
     entity = relationship("Entity", back_populates="train")
+    controllers = relationship("TrainController", back_populates="train")
 
 
 class TrainModel(BaseModel):
@@ -31,5 +32,6 @@ class TrainModel(BaseModel):
     id: int
     entity: Annotated[int, BeforeValidator(object_to_model_id)]
     max_speed: int
+    controllers: Annotated[list[int], BeforeValidator(objects_to_model_ids)]
 
     model_config = ConfigDict(from_attributes=True)

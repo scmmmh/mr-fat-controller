@@ -52,6 +52,7 @@
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ["entities"] });
         queryClient.invalidateQueries({ queryKey: ["trains"] });
+        queryClient.invalidateQueries({ queryKey: ["train-controllers"] });
         deleteDialogOpen = false;
       }
     },

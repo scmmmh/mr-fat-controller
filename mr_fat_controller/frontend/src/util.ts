@@ -66,3 +66,7 @@ export function useSignals() {
 export function useTrains() {
   return getContext("trains") as CreateQueryResult<Train[], Error>;
 }
+
+export function useTrainControllers() {
+  return getContext("train_controllers") as CreateQueryResult<TrainController[], Error>;
+}

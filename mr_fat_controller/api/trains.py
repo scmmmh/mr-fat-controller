@@ -35,7 +35,9 @@ async def create_train(data: CreateTrainModel, dbsession=Depends(inject_db_sessi
 @router.get("", response_model=list[TrainModel])
 async def get_trains(dbsession=Depends(inject_db_session)) -> list[Train]:
     """Get all trains."""
-    query = select(Train).order_by(Train.id).options(selectinload(Train.entity))
+    query = (
+        select(Train).order_by(Train.id).options(selectinload(Train.entity)).options(selectinload(Train.controllers))
+    )
     result = await dbsession.execute(query)
     return list(result.scalars())
 
@@ -43,7 +45,12 @@ async def get_trains(dbsession=Depends(inject_db_session)) -> list[Train]:
 @router.get("/{tid}", response_model=TrainModel)
 async def get_train(tid: int, dbsession=Depends(inject_db_session)) -> Train:
     """Get a train."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
+    query = (
+        select(Train)
+        .filter(Train.id == tid)
+        .options(selectinload(Train.entity))
+        .options(selectinload(Train.controllers))
+    )
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
         return train
@@ -62,7 +69,12 @@ class UpdateTrainModel(BaseModel):
 @router.put("/{tid}", response_model=TrainModel)
 async def update_train(tid: int, data: UpdateTrainModel, dbsession=Depends(inject_db_session)) -> Train:
     """Update a train."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
+    query = (
+        select(Train)
+        .filter(Train.id == tid)
+        .options(selectinload(Train.entity))
+        .options(selectinload(Train.controllers))
+    )
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
         train.max_speed = data.max_speed
@@ -75,7 +87,7 @@ async def update_train(tid: int, data: UpdateTrainModel, dbsession=Depends(injec
 @router.delete("/{tid}", status_code=204)
 async def delete_train(tid: int, dbsession=Depends(inject_db_session)) -> None:
     """Delete a trains."""
-    query = select(Train).filter(Train.id == tid).options(selectinload(Train.entity))
+    query = select(Train).filter(Train.id == tid)
     train = (await dbsession.execute(query)).scalar()
     if train is not None:
         await dbsession.delete(train)

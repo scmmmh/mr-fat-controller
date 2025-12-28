@@ -7,6 +7,7 @@
     mdiDomeLight,
     mdiPencil,
   } from "@mdi/js";
+  import { onDestroy } from "svelte";
 
   import Icon from "../Icon.svelte";
   import {
@@ -14,29 +15,101 @@
     useActiveState,
     useEntities,
     useSendStateMessage,
+    useTrainControllers,
     useTrains,
   } from "../../util";
 
+  const trainControllers = useTrainControllers();
   const trains = useTrains();
   const activeState = useActiveState();
   const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const sendStateMessage = useSendStateMessage();
-  let train: Train | null = $state(null);
+  let trainController: TrainController | null = $state(null);
   let activeFunctions: string[] = [];
+  let simulationInterval: number = -1;
+  let simulatedSpeed: number = $state(0);
+  let throttleValue: number = $state(0);
+  let breakValue: number = $state(0);
+
+  let train = $derived.by(() => {
+    if (trainController !== null && trains.isSuccess) {
+      for (const item of trains.data) {
+        if (item.id === trainController.train) {
+          return item;
+        }
+      }
+    }
+    return null;
+  });
+
+  $effect(() => {
+    if (trainController !== null && trainController.mode === "combined") {
+      window.clearInterval(simulationInterval);
+      simulationInterval = window.setInterval(simulationStep, 100);
+      simulatedSpeed = 0;
+    } else {
+      window.clearInterval(simulationInterval);
+    }
+  });
+
+  function simulationStep() {
+    if (trainController?.mode === "combined") {
+      if (throttleValue >= 0) {
+        const currentSpeed = (train.max_speed / 127) * simulatedSpeed;
+        const acceleration = ((2.2 / 100) * throttleValue * 3.6) / 10;
+        simulatedSpeed = Math.max(
+          Math.min(
+            ((currentSpeed +
+              acceleration -
+              currentSpeed * currentSpeed * 0.000005) /
+              train.max_speed) *
+              127,
+            127,
+          ),
+          0,
+        );
+      } else {
+        const currentSpeed = (train.max_speed / 127) * simulatedSpeed;
+        const deceleration = ((1.8 / 100) * Math.abs(throttleValue) * 3.6) / 10;
+        simulatedSpeed = Math.max(
+          Math.min(
+            ((currentSpeed -
+              deceleration -
+              currentSpeed * currentSpeed * 0.000005) /
+              train.max_speed) *
+              127,
+            127,
+          ),
+          0,
+        );
+      }
+      if (activeState.train[train.id].speed !== Math.floor(simulatedSpeed)) {
+        activeState.train[train.id].speed = Math.floor(simulatedSpeed);
+        sendStateMessage({
+          type: "set-speed",
+          payload: {
+            id: train.id,
+            state: activeState.train[train.id].speed,
+          },
+        });
+      }
+    }
+  }
+  onDestroy(() => {
+    window.clearInterval(simulationInterval);
+  });
 </script>
 
 <div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
   <div class="flex flex-row space-x-4 mb-2">
     <h2 class="flex-1 text-xl font-bold truncate">
-      {#if train !== null}{entitiesDict[train.entity].name}{:else}Select Train{/if}
+      {#if train !== null}{entitiesDict[train.entity].name}{:else}Select
+        Controller{/if}
     </h2>
     <Dialog.Root>
       <Dialog.Trigger
         class="block rounded transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1"
-        ><Icon
-          path={mdiPencil}
-          label="Configure the controller"
-        /></Dialog.Trigger
+        ><Icon path={mdiPencil} label="Select the controller" /></Dialog.Trigger
       >
       <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 z-20 bg-white/80" />
@@ -45,7 +118,7 @@
         >
           <Dialog.Title
             class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
-            >Configure the controller</Dialog.Title
+            >Select controller</Dialog.Title
           >
           <form
             onsubmit={(ev) => {
@@ -54,18 +127,13 @@
             class="flex-1 flex flex-col overflow-hidden gap-4"
           >
             <div class="flex-1 px-4 py-2">
-              {#if trains.isSuccess}
-                <label class="block">
-                  <span class="block text-sm font-bold mb-1">Active train</span>
-                  <select
-                    bind:value={train}
-                    class="block px-4 py-2 border border-black rounded"
-                  >
-                    <option value={null}>No active train</option>
-                    {#each trains.data as item}
-                      <option value={item}
-                        >{entitiesDict[item.entity].name}</option
-                      >
+              {#if trainControllers.isSuccess}
+                <label data-form-field="">
+                  <span data-form-label="">Selected controller</span>
+                  <select bind:value={trainController} data-form-input="">
+                    <option value={null}>No controller selected</option>
+                    {#each trainControllers.data as item}
+                      <option value={item}>{item.name}</option>
                     {/each}
                   </select>
                 </label>
@@ -83,7 +151,7 @@
     </Dialog.Root>
   </div>
 
-  {#if train != null && activeState.train[train.id]}
+  {#if trainController !== null && train != null && activeState.train[train.id]}
     <Toolbar.Root
       class="flex-wrap mb-4"
       aria-label="{entitiesDict[train.entity].name} actions"
@@ -179,33 +247,57 @@
       >
     </div>
     <div class="flex-1 text-center overflow-hidden">
-      <datalist id="{train.id}-speeds">
-        <option value="0"></option>
-        <option value="31"></option>
-        <option value="63"></option>
-        <option value="95"></option>
-        <option value="127"></option>
-      </datalist>
-      <input
-        type="range"
-        min="0"
-        max="127"
-        bind:value={activeState.train[train.id].speed}
-        oninput={() => {
-          if (train !== null) {
-            sendStateMessage({
-              type: "set-speed",
-              payload: {
-                id: train.id,
-                state: activeState.train[train.id].speed,
-              },
-            });
-          }
-        }}
-        list="{train.id}-speeds"
-        class="h-full"
-        style="writing-mode: sideways-lr;"
-      />
+      {#if trainController.mode === "direct"}
+        <datalist id="{train.id}-speeds">
+          <option value="0"></option>
+          <option value="31"></option>
+          <option value="63"></option>
+          <option value="95"></option>
+          <option value="127"></option>
+        </datalist>
+        <input
+          type="range"
+          min="0"
+          max="127"
+          bind:value={activeState.train[train.id].speed}
+          oninput={() => {
+            if (train !== null) {
+              sendStateMessage({
+                type: "set-speed",
+                payload: {
+                  id: train.id,
+                  state: activeState.train[train.id].speed,
+                },
+              });
+            }
+          }}
+          list="{train.id}-speeds"
+          class="h-full"
+          style="writing-mode: sideways-lr;"
+        />
+      {:else if trainController.mode === "combined"}
+        <datalist id="{train.id}-speeds">
+          <option value="-100"></option>
+          <option value="-75"></option>
+          <option value="-50"></option>
+          <option value="-25"></option>
+          <option value="0"></option>
+          <option value="25"></option>
+          <option value="50"></option>
+          <option value="75"></option>
+          <option value="100"></option>
+        </datalist>
+        <input
+          type="range"
+          min="-100"
+          max="100"
+          bind:value={throttleValue}
+          list="{train.id}-speeds"
+          class="h-full"
+          style="writing-mode: sideways-lr;"
+        />
+      {/if}
     </div>
+    <div class="h-20"></div>
   {/if}
 </div>

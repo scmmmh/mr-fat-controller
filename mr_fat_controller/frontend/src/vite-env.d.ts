@@ -96,6 +96,13 @@ type TrainFunctionState = {
   name: string,
 };
 
+type TrainController = {
+  id: number;
+  mode: "direct" | "combined" | "separate";
+  name: string;
+  train: number;
+}
+
 type State = {
   block_detector: { [key: number]: BlockDetectorState },
   points: { [key: number]: PointsState },

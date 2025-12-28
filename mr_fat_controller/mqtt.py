@@ -224,7 +224,7 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                     },
                     notify=False,
                 )
-        query = select(Train).options(selectinload(Train.entity))
+        query = select(Train).options(selectinload(Train.entity)).options(selectinload(Train.controllers))
         result = await dbsession.execute(query)
         for train in result.scalars():
             if train.entity.state_topic in state_manager:
