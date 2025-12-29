@@ -1,9 +1,35 @@
 @import "tailwindcss";
 
+/**
+ * Generic styling
+ */
+
 button {
     @apply cursor-pointer;
 }
 
+select, input[type="text"], input[type="number"] {
+    @apply block w-full px-4 py-2 rounded border border-gray-500;
+}
+
+/**
+ * Form styling
+ */
+[data-form-field] {
+    @apply block mb-4;
+}
+
+[data-form-label] {
+    @apply block text-sm font-bold mb-1;
+}
+
+[data-form-input] {
+    @apply block w-full px-4 py-2 rounded border border-gray-500;
+}
+
+/**
+ * Toolbar styling
+ */
 [data-toolbar-root] {
     @apply flex flex-row;
 }
@@ -16,13 +42,8 @@ button {
     @apply block transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1;
 }
 
-
 [data-toolbar-group-item][aria-checked="true"], [data-toolbar-group-item][aria-pressed="true"]{
     @apply bg-emerald-300 hover:text-black focus:text-black;
-}
-
-[data-dialog-trigger] {
-    @apply rounded;
 }
 
 [data-toolbar-button]:first-child {
@@ -37,6 +58,41 @@ button {
     @apply border-l border-l-white;
 }
 
-select, input[type="text"] {
-    @apply block w-full px-4 py-2 rounded border border-gray-500;
+/**
+ * Dialog styling
+ */
+[data-dialog-trigger] {
+    @apply rounded;
+}
+
+/**
+ * Slider styling
+ */
+
+[data-slider-root] {
+    @apply flex flex-col relative w-full h-full touch-none select-none items-center;
+}
+
+[data-slider-range-bg] {
+    @apply block bg-slate-400 relative w-2 grow cursor-pointer overflow-hidden rounded-full;
+}
+
+[data-slider-range] {
+    @apply bg-slate-800 absolute w-full left-0;
+}
+
+[data-slider-thumb] {
+    @apply block absolute w-8 h-4 bg-emerald-700 focus:bg-emerald-600 transition-colors rounded shadow-xl;
+}
+
+[data-slider-thumb][data-slider-locked] {
+    @apply bg-slate-400;
+}
+
+[data-slider-thumb-label] > span{
+    @apply block absolute -translate-y-1/2 -translate-x-1/2 text-xs text-white;
+}
+
+[data-slider-tick] {
+    @apply ml-10 bg-black w-2 h-[1px];
 }

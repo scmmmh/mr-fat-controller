@@ -4,39 +4,72 @@
     mdiArrowDown,
     mdiArrowUp,
     mdiCarLightDimmed,
+    mdiCloseOctagonOutline,
     mdiDomeLight,
-    mdiTrain,
+    mdiPencil,
   } from "@mdi/js";
 
   import Icon from "../Icon.svelte";
+  import DirectThrottle from "./DirectThrottle.svelte";
+  import CombinedThrottleBreak from "./CombinedThrottleBreak.svelte";
+  import SeparateThrottleBreak from "./SeparateThrottleBreak.svelte";
   import {
     entitiesToDict,
     useActiveState,
     useEntities,
     useSendStateMessage,
+    useTrainControllers,
     useTrains,
   } from "../../util";
 
+  const trainControllers = useTrainControllers();
   const trains = useTrains();
   const activeState = useActiveState();
   const entitiesDict = $derived.by(() => entitiesToDict(useEntities()));
   const sendStateMessage = useSendStateMessage();
-  let train: Train | null = $state(null);
+  let trainController: TrainController | null = $state(null);
   let activeFunctions: string[] = [];
+  let throttleValue: number = $state(0);
+
+  let train = $derived.by(() => {
+    if (trainController !== null && trains.isSuccess) {
+      for (const item of trains.data) {
+        if (item.id === trainController.train) {
+          return item;
+        }
+      }
+    }
+    return null;
+  });
+
+  $effect(() => {
+    if (
+      train !== null &&
+      activeState.train[train.id].speed !== throttleValue &&
+      throttleValue >= 0
+    ) {
+      activeState.train[train.id].speed = throttleValue;
+      sendStateMessage({
+        type: "set-speed",
+        payload: {
+          id: train.id,
+          state: activeState.train[train.id].speed,
+        },
+      });
+    }
+  });
 </script>
 
 <div class="flex flex-col w-full h-full xl:w-auto overflow-hidden">
   <div class="flex flex-row space-x-4 mb-2">
     <h2 class="flex-1 text-xl font-bold truncate">
-      {#if train !== null}{entitiesDict[train.entity].name}{:else}Select Train{/if}
+      {#if train !== null}{entitiesDict[train.entity].name}{:else}Select
+        Controller{/if}
     </h2>
     <Dialog.Root>
       <Dialog.Trigger
         class="block rounded transition-colors bg-slate-200 hover:bg-emerald-700 hover:text-white focus:bg-emerald-700 focus:text-white px-2 py-1"
-        ><Icon
-          path={mdiTrain}
-          label="Select the active train"
-        /></Dialog.Trigger
+        ><Icon path={mdiPencil} label="Select the controller" /></Dialog.Trigger
       >
       <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 z-20 bg-white/80" />
@@ -45,7 +78,7 @@
         >
           <Dialog.Title
             class="px-4 py-2 border-b-2 border-black font-bold bg-emerald-700 text-white"
-            >Select the train to control</Dialog.Title
+            >Select controller</Dialog.Title
           >
           <form
             onsubmit={(ev) => {
@@ -54,37 +87,16 @@
             class="flex-1 flex flex-col overflow-hidden gap-4"
           >
             <div class="flex-1 px-4 py-2">
-              {#if trains.isSuccess}
-                {#if trains.data.length > 5}
-                  <label class="block">
-                    <span class="block text-sm font-bold mb-1"
-                      >Active train</span
-                    >
-                    <select
-                      bind:value={train}
-                      class="block px-4 py-2 border border-black rounded"
-                    >
-                      <option value={null}>No active train</option>
-                      {#each trains.data as item}
-                        <option value={item}
-                          >{entitiesDict[item.entity].name}</option
-                        >
-                      {/each}
-                    </select>
-                  </label>
-                {:else}
-                  <span class="block text-sm font-bold mb-1">Active train</span>
-                  <label class="block mb-2">
-                    <input type="radio" bind:group={train} value={null} />
-                    <span>No active train</span>
-                  </label>
-                  {#each trains.data as item}
-                    <label class="block mb-2">
-                      <input type="radio" bind:group={train} value={item} />
-                      <span>{entitiesDict[item.entity].name}</span>
-                    </label>
-                  {/each}
-                {/if}
+              {#if trainControllers.isSuccess}
+                <label data-form-field="">
+                  <span data-form-label="">Selected controller</span>
+                  <select bind:value={trainController} data-form-input="">
+                    <option value={null}>No controller selected</option>
+                    {#each trainControllers.data as item}
+                      <option value={item}>{item.name}</option>
+                    {/each}
+                  </select>
+                </label>
               {/if}
             </div>
             <div class="px-4 py-2 flex flex-row justify-end gap-4">
@@ -99,11 +111,22 @@
     </Dialog.Root>
   </div>
 
-  {#if train != null && activeState.train[train.id]}
+  {#if trainController !== null && train != null && activeState.train[train.id]}
     <Toolbar.Root
       class="flex-wrap mb-4"
       aria-label="{entitiesDict[train.entity].name} actions"
     >
+      <Toolbar.Button
+        aria-label="Emergency stop"
+        onclick={() => {
+          throttleValue = 0;
+        }}
+        ><Icon
+          path={mdiCloseOctagonOutline}
+          label="Emergency stop this train"
+        /></Toolbar.Button
+      >
+      <Separator.Root />
       <Toolbar.Group
         bind:value={activeState.train[train.id].direction}
         onValueChange={(value: string) => {
@@ -184,34 +207,33 @@
         {/each}
       </Toolbar.Group>
     </Toolbar.Root>
-    <div class="flex-1 text-center overflow-hidden">
-      <datalist id="{train.id}-speeds">
-        <option value="0"></option>
-        <option value="31"></option>
-        <option value="63"></option>
-        <option value="95"></option>
-        <option value="127"></option>
-      </datalist>
-      <input
-        type="range"
-        min="0"
-        max="127"
-        bind:value={activeState.train[train.id].speed}
-        oninput={() => {
-          if (train !== null) {
-            sendStateMessage({
-              type: "set-speed",
-              payload: {
-                id: train.id,
-                state: activeState.train[train.id].speed,
-              },
-            });
-          }
-        }}
-        list="{train.id}-speeds"
-        class="h-full"
-        style="writing-mode: sideways-lr;"
-      />
+    <div class="text-center mb-4">
+      <span
+        class="inline-block bg-black text-white font-mono px-2 py-1 text-2xl tracking-widest rounded"
+        >{Math.floor(
+          (activeState.train[train.id].speed / 127) * train.max_speed,
+        )
+          .toString()
+          .padStart(3, "0")}</span
+      >
     </div>
+    <div class="flex-1 text-center overflow-hidden">
+      {#if trainController.mode === "direct"}
+        <DirectThrottle bind:value={throttleValue} />
+      {:else if trainController.mode === "combined"}
+        <CombinedThrottleBreak
+          bind:value={throttleValue}
+          {train}
+          {trainController}
+        />
+      {:else if trainController.mode === "separate"}
+        <SeparateThrottleBreak
+          bind:value={throttleValue}
+          {train}
+          {trainController}
+        />
+      {/if}
+    </div>
+    <div class="h-20"></div>
   {/if}
 </div>

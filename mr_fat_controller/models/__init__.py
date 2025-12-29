@@ -25,6 +25,7 @@ from mr_fat_controller.models.power_switch import PowerSwitch, PowerSwitchModel 
 from mr_fat_controller.models.signal import Signal, SignalModel  # noqa: F401
 from mr_fat_controller.models.signal_automation import SignalAutomation, SignalAutomationModel  # noqa:F401
 from mr_fat_controller.models.train import Train, TrainModel  # noqa:F401
+from mr_fat_controller.models.train_controller import TrainController, TrainControllerModel  # noqa:F401
 from mr_fat_controller.settings import settings
 
 logger = logging.getLogger(__name__)

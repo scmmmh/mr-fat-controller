@@ -14,7 +14,7 @@ from mr_fat_controller.settings import settings
 logger = logging.getLogger(__name__)
 
 
-async def execute_setup(*, drop_existing: bool = False, revert_last: bool = False) -> None:
+async def execute_setup(*, drop_existing: bool = False, revert_last: int = 0) -> None:
     """Run the actual setup."""
     from alembic import command
     from alembic.config import Config
@@ -32,9 +32,9 @@ async def execute_setup(*, drop_existing: bool = False, revert_last: bool = Fals
                 if drop_existing:
                     logger.debug("Removing existing tables")
                     command.downgrade(alembic_config, "base")
-                elif revert_last:
-                    logger.debug("Removing last migration")
-                    command.downgrade(alembic_config, "-1")
+                elif revert_last > 0:
+                    logger.debug(f"Removing last {revert_last} migration(s)")
+                    command.downgrade(alembic_config, f"-{revert_last}")
                 logger.debug("Running upgrade")
                 command.upgrade(alembic_config, "head")
             except Exception as e:

@@ -10,6 +10,7 @@
   import SignalList from "../lists/SignalList.svelte";
   import SignalAutomationList from "../lists/SignalAutomationList.svelte";
   import TrainController from "../controllers/TrainController.svelte";
+  import TrainControllerList from "../lists/TrainControllerList.svelte";
 </script>
 
 <main id="main" class="flex-1 flex flex-row overflow-hidden">
@@ -49,6 +50,7 @@
           <DevicesList />
           <EntitiesList />
           <SignalAutomationList />
+          <TrainControllerList />
         </div>
       </Tabs.Content>
       <Tabs.Content value="elements" class="flex-1 overflow-hidden">

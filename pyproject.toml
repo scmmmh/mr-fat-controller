@@ -71,16 +71,27 @@ commands = [
 dependencies = ["coverage[toml]>=6.5", "pytest", "ruff==0.9.4", "httpx"]
 
 [tool.hatch.envs.default.scripts]
+# Dev Servers
 database = "cd dev && podman-compose start"
 server = "cd dev && uvicorn --host 0.0.0.0 --reload --reload-dir ../mr_fat_controller mr_fat_controller.server:app {args}"
+frontend-server="cd mr_fat_controller/frontend && npm ci && npm run dev"
+build-frontend = "cd mr_fat_controller/frontend && npm ci && npx vite build --watch"
+
+# Database commands
+create-migration = "DSN='dummy' alembic -c alembic.ini revision {args}"
+migrate = "cd dev && python -m mr_fat_controller setup {args}"
+
+# Generic CLI commands
 mr-fat-controller = "cd dev && python -m mr_fat_controller {args}"
 withrottle-bridge = "cd dev && python -m mr_fat_controller withrottle-bridge"
-build-frontend = "cd mr_fat_controller/frontend && npm install && npx vite build --watch"
-create-migration = "DSN='dummy' alembic -c alembic.ini revision {args}"
+
+# Test commands
 test = "cd tests && pytest {args:.}"
 test-cov = "cd tests && coverage run -m pytest {args:.}"
 cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
+
+# Style commands
 style = "ruff check --fix {args:.}"
 format = "ruff format {args:.}"
 

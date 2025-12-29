@@ -14,7 +14,7 @@ app = Typer()
 
 
 @app.command()
-def setup(drop_existing: bool = False, revert_last: bool = False) -> None:  # noqa:FBT001, FBT002
+def setup(drop_existing: bool = False, revert_last: int = 0) -> None:  # noqa:FBT001, FBT002
     """Set up the database."""
     asyncio.run(execute_setup(drop_existing=drop_existing, revert_last=revert_last))
 

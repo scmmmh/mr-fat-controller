@@ -51,6 +51,12 @@
     enabled: entities.isSuccess,
   }));
   setContext("trains", trains);
+
+  const train_controllers = createQuery<Train[]>(() => ({
+    queryKey: ["train-controllers"],
+    enabled: entities.isSuccess,
+  }));
+  setContext("train_controllers", train_controllers);
 </script>
 
 {@render children()}

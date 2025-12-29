@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     dsn: str
     mqtt: MqttSettings
     withrottle: WiThrottleSettings = WiThrottleSettings()
+    dev: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

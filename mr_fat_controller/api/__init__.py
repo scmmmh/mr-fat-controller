@@ -18,6 +18,7 @@ from mr_fat_controller.api.power_switches import router as power_switches_router
 from mr_fat_controller.api.signal_automations import router as signal_automations_router
 from mr_fat_controller.api.signals import router as signals_router
 from mr_fat_controller.api.state import router as state_router
+from mr_fat_controller.api.train_controllers import router as train_controllers_router
 from mr_fat_controller.api.trains import router as trains_router
 from mr_fat_controller.models import inject_db_session
 
@@ -31,6 +32,7 @@ router.include_router(points_router)
 router.include_router(signal_automations_router)
 router.include_router(signals_router)
 router.include_router(state_router)
+router.include_router(train_controllers_router)
 router.include_router(trains_router)
 
 
