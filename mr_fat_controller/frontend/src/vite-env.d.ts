@@ -6,6 +6,8 @@ type Device = {
   external_id: string,
   name: string,
   attrs: any,
+  last_seen: number,
+  is_recently_active: boolean,
 
   entities: number[],
 };

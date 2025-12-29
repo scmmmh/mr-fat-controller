@@ -16,7 +16,7 @@ router = APIRouter(prefix="/devices")
 @router.get("", response_model=list[DeviceModel])
 async def get_devices(dbsession=Depends(inject_db_session)) -> list[Device]:
     """Get all devices."""
-    query = select(Device).options(selectinload(Device.entities))
+    query = select(Device).order_by(Device.name).options(selectinload(Device.entities))
     result = await dbsession.execute(query)
     return list(result.scalars())
 

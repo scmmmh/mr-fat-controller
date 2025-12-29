@@ -5,13 +5,14 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict
-from sqlalchemy import Column, Integer, Unicode
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from sqlalchemy import Column, DateTime, Integer, Unicode
 from sqlalchemy.orm import relationship
 from sqlalchemy_json import NestedMutableJson
 
 from mr_fat_controller.models.meta import Base
-from mr_fat_controller.models.util import objects_to_model_ids
+from mr_fat_controller.models.util import datetime_to_timestamp, objects_to_model_ids
+from mr_fat_controller.util import is_recently_active as check_recently_active
 
 
 class Device(Base):
@@ -22,6 +23,7 @@ class Device(Base):
     id = Column(Integer, primary_key=True)
     external_id = Column(Unicode(255), unique=True)
     name = Column(Unicode(255))
+    last_seen = Column(DateTime)
     attrs = Column(NestedMutableJson)
 
     entities = relationship("Entity", back_populates="device", cascade="all, delete-orphan")
@@ -33,6 +35,8 @@ class DeviceModel(BaseModel):
     id: int
     external_id: str
     name: str
+    last_seen: Annotated[int, BeforeValidator(datetime_to_timestamp)]
+    is_recently_active: Annotated[bool, BeforeValidator(check_recently_active)] = Field(validation_alias="last_seen")
     attrs: dict
 
     entities: Annotated[list[int], BeforeValidator(objects_to_model_ids)]

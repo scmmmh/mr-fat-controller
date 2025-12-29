@@ -8,6 +8,7 @@ import json
 import logging
 import ssl
 from asyncio import sleep
+from datetime import datetime, timezone
 from typing import cast
 
 from aiomqtt import Client
@@ -73,6 +74,7 @@ async def mqtt_listener() -> None:
                             await state_manager.update_state(
                                 message.topic.value, json.loads(cast(str, message.payload))
                             )
+                            await update_device_active(message.topic.value)
                     except Exception as e:
                         logger.error(e)
         except asyncio.CancelledError:
@@ -120,11 +122,13 @@ async def register_new_entity(data: dict) -> None:
                 device = Device(
                     external_id=entity.device.identifiers[0],
                     name=entity.device.name,
+                    last_seen=datetime.now(tz=timezone.utc).replace(tzinfo=None),  # noqa: UP017
                     attrs=data["device"],
                 )
                 dbsession.add(device)
             else:
                 device.name = entity.device.name  # type: ignore
+                device.last_seen = datetime.now(tz=timezone.utc).replace(tzinfo=None)  # noqa: UP017
                 device.attrs = data["device"]
             query = select(Entity).filter(Entity.external_id == entity.unique_id)
             result = await dbsession.execute(query)
@@ -245,3 +249,18 @@ async def recalculate_state() -> None:  # TODO: This needs a better name.
                     notify=False,
                 )
     await state_manager._notify(None)
+
+
+async def update_device_active(entity_topic) -> None:
+    """Update the database to note that a device was active."""
+    async with (
+        db_session() as dbsession  # pyright: ignore[reportGeneralTypeIssues]
+    ):
+        query = (
+            select(Entity).filter(Entity.external_id == entity_topic.split("/")[2]).options(joinedload(Entity.device))
+        )
+        result = await dbsession.execute(query)
+        entity = result.scalar()
+        if entity is not None:
+            entity.device.last_seen = datetime.now(tz=timezone.utc).replace(tzinfo=None)  # noqa: UP017
+            await dbsession.commit()
