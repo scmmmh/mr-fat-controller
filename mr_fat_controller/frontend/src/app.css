@@ -85,6 +85,10 @@ select, input[type="text"], input[type="number"] {
     @apply block absolute w-8 h-4 bg-emerald-700 focus:bg-emerald-600 transition-colors rounded shadow-xl;
 }
 
+[data-slider-thumb][data-slider-locked] {
+    @apply bg-slate-400;
+}
+
 [data-slider-thumb-label] > span{
     @apply block absolute -translate-y-1/2 -translate-x-1/2 text-xs text-white;
 }
