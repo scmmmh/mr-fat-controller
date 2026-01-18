@@ -44,11 +44,20 @@
       {#each devices.data as device}
         <li class="flex flex-row space-x-2 items-center">
           {#if device.attrs.model === "MQTT House @ Pi Pico"}
-            <Icon path={mdiChip} />
+            <Icon
+              path={mdiChip}
+              class={!device.is_recently_active ? "text-slate-400" : ""}
+            />
           {:else if device.attrs.model === "WiThrottle Bridge"}
-            <Icon path={mdiControllerClassicOutline} />
+            <Icon
+              path={mdiControllerClassicOutline}
+              class={!device.is_recently_active ? "text-slate-400" : ""}
+            />
           {:else}
-            <Icon path={mdiHelpRhombusOutline} />
+            <Icon
+              path={mdiHelpRhombusOutline}
+              class={!device.is_recently_active ? "text-slate-400" : ""}
+            />
           {/if}
           <span class="flex-1">{device.name}</span>
 
