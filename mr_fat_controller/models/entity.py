@@ -42,7 +42,7 @@ class EntityModel(BaseModel):
     id: int
     external_id: str
     name: str
-    device_class: str
+    device_class: str | None = None
     state_topic: str
     command_topic: str | None
     attrs: dict
