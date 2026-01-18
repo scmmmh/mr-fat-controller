@@ -4,12 +4,14 @@
     mdiChip,
     mdiElectricSwitch,
     mdiHelpRhombusOutline,
+    mdiKnob,
     mdiLeak,
     mdiLightbulbOutline,
     mdiPowerPlug,
     mdiRailroadLight,
     mdiShapeCirclePlus,
     mdiSourceBranchPlus,
+    mdiSpeedometer,
     mdiTrain,
     mdiTrashCanOutline,
   } from "@mdi/js";
@@ -162,6 +164,10 @@
   <Icon path={mdiLeak} />
 {:else if entity.device_class === "light"}
   <Icon path={mdiLightbulbOutline} />
+{:else if entity.device_class === "enum"}
+  <Icon path={mdiKnob} />
+{:else if entity.device_class === null}
+  <Icon path={mdiSpeedometer} />
 {:else}
   <Icon path={mdiHelpRhombusOutline} />
 {/if}
